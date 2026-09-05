@@ -1,21 +1,25 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MedLens — Clinical Intelligence & Record Review Engine</title>
+  <title>MedLens — Clinical Intelligence &amp; Record Review Engine</title>
   <meta name="description" content="A client-side medical record structuring and review tool that transforms fragmented clinical notes, prescriptions, and lab records into structured, reviewable records with source provenance, conflict detection, and human verification.">
 
   <style>
-    :root {
-      --bg-primary: #0a0e17;
-      --bg-surface: #121826;
-      --bg-surface-elevated: #1a2336;
-      --bg-surface-card: rgba(18, 24, 38, 0.85);
+
+    :root, [data-theme="dark"] {
+      --bg-primary: #0b0f19;
+      --bg-surface: #111827;
+      --bg-surface-elevated: #1f2937;
+      --bg-surface-card: #111827;
+      --bg-hover: #1e293b;
       
       --accent-blue: #3b82f6;
+      --accent-blue-hover: #2563eb;
+      --accent-blue-subtle: rgba(59, 130, 246, 0.12);
       --accent-cyan: #06b6d4;
-      --accent-teal: #14b8a6;
+      --accent-teal: #0d9488;
       --accent-indigo: #6366f1;
       
       --text-main: #f8fafc;
@@ -23,11 +27,16 @@
       --text-subtle: #64748b;
       
       --status-success: #10b981;
+      --status-success-bg: rgba(16, 185, 129, 0.12);
       --status-warning: #f59e0b;
+      --status-warning-bg: rgba(245, 158, 11, 0.12);
       --status-danger: #ef4444;
+      --status-danger-bg: rgba(239, 68, 68, 0.12);
       --status-info: #3b82f6;
+      --status-info-bg: rgba(59, 130, 246, 0.12);
       
       --border-color: rgba(255, 255, 255, 0.1);
+      --border-color-subtle: rgba(255, 255, 255, 0.06);
       --border-focus: #3b82f6;
       
       --radius-sm: 6px;
@@ -35,9 +44,50 @@
       --radius-lg: 16px;
       --radius-full: 9999px;
       
-      --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
-      --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.24);
+      --card-shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.5);
+      --table-header-bg: #141e30;
+      --table-row-alt: rgba(255, 255, 255, 0.015);
+      --table-row-hover: rgba(59, 130, 246, 0.08);
       --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    [data-theme="light"] {
+      --bg-primary: #f8fafc;
+      --bg-surface: #ffffff;
+      --bg-surface-elevated: #f1f5f9;
+      --bg-surface-card: #ffffff;
+      --bg-hover: #e2e8f0;
+      
+      --accent-blue: #2563eb;
+      --accent-blue-hover: #1d4ed8;
+      --accent-blue-subtle: rgba(37, 99, 235, 0.08);
+      --accent-cyan: #0891b2;
+      --accent-teal: #0f766e;
+      --accent-indigo: #4f46e5;
+      
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-subtle: #64748b;
+      
+      --status-success: #059669;
+      --status-success-bg: #ecfdf5;
+      --status-warning: #d97706;
+      --status-warning-bg: #fffbeb;
+      --status-danger: #dc2626;
+      --status-danger-bg: #fef2f2;
+      --status-info: #2563eb;
+      --status-info-bg: #eff6ff;
+      
+      --border-color: #e2e8f0;
+      --border-color-subtle: #f1f5f9;
+      --border-focus: #2563eb;
+      
+      --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+      --card-shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.09);
+      --table-header-bg: #f8fafc;
+      --table-row-alt: #fbfcfd;
+      --table-row-hover: #f1f5f9;
     }
 
     * {
@@ -54,19 +104,14 @@
       display: flex;
       flex-direction: column;
       line-height: 1.5;
-      background-image: 
-        radial-gradient(circle at 10% 10%, rgba(59, 130, 246, 0.07) 0%, transparent 40%),
-        radial-gradient(circle at 90% 90%, rgba(20, 184, 166, 0.05) 0%, transparent 40%);
-      background-attachment: fixed;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
-    /* Accessibility Focus Outline */
     :focus-visible {
-      outline: 2px solid var(--accent-cyan);
+      outline: 2px solid var(--accent-blue);
       outline-offset: 2px;
     }
 
-    /* Scrollbar */
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: var(--bg-primary); }
     ::-webkit-scrollbar-thumb { background: var(--bg-surface-elevated); border-radius: var(--radius-full); }
@@ -74,283 +119,480 @@
 
     /* Header */
     header {
-      background: rgba(18, 24, 38, 0.92);
-      backdrop-filter: blur(14px);
+      background: var(--bg-surface);
       border-bottom: 1px solid var(--border-color);
       position: sticky;
       top: 0;
       z-index: 100;
-      padding: 0.85rem 1.5rem;
+      padding: 0.75rem 1.5rem;
+      transition: var(--transition);
     }
 
     .header-container {
-      max-width: 1480px;
+      max-width: 1520px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 1rem;
+      gap: 0.85rem;
     }
 
     .brand {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      text-decoration: none;
     }
 
     .brand-icon {
-      width: 42px;
-      height: 42px;
+      width: 40px;
+      height: 40px;
       background: linear-gradient(135deg, var(--accent-blue), var(--accent-teal));
       border-radius: var(--radius-md);
       display: flex;
       align-items: center;
       justify-content: center;
       color: white;
-      font-weight: 800;
-      font-size: 1.25rem;
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      flex-shrink: 0;
     }
 
     .brand-text h1 {
-      font-size: 1.35rem;
+      font-size: 1.25rem;
       font-weight: 800;
-      background: linear-gradient(90deg, #ffffff, #93c5fd);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      color: var(--text-main);
       letter-spacing: -0.02em;
+      line-height: 1.2;
     }
 
     .brand-text p {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
+      font-weight: 500;
     }
 
-    .header-badges {
+    .header-engine {
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
-    .system-badge {
+    .engine-badge {
       font-size: 0.75rem;
       padding: 0.3rem 0.65rem;
       border-radius: var(--radius-full);
-      background: rgba(255, 255, 255, 0.05);
+      background: var(--bg-surface-elevated);
       border: 1px solid var(--border-color);
       color: var(--text-muted);
       display: inline-flex;
       align-items: center;
-      gap: 0.35rem;
+      gap: 0.4rem;
       font-weight: 600;
     }
 
-    .btn {
+    .engine-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--status-success);
+      display: inline-block;
+      box-shadow: 0 0 6px var(--status-success);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-wrap: wrap;
+    }
+
+    .header-btn {
       background: var(--bg-surface-elevated);
-      color: var(--text-main);
       border: 1px solid var(--border-color);
-      padding: 0.5rem 0.95rem;
-      border-radius: var(--radius-md);
-      font-size: 0.85rem;
+      color: var(--text-main);
+      padding: 0.38rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.78rem;
       font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.35rem;
+      transition: var(--transition);
+    }
+
+    .header-btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent-blue);
+    }
+
+    .header-btn.active {
+      background: var(--accent-blue-subtle);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+
+    /* Buttons */
+    .btn {
+      padding: 0.45rem 0.9rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border-color);
+      background: var(--bg-surface-elevated);
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35rem;
       transition: var(--transition);
       text-decoration: none;
     }
 
     .btn:hover {
-      background: rgba(59, 130, 246, 0.15);
-      border-color: var(--accent-blue);
-      color: white;
-      transform: translateY(-1px);
+      background: var(--bg-hover);
     }
 
     .btn-primary {
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
-      border: none;
+      background: var(--accent-blue);
+      border-color: var(--accent-blue);
       color: white;
-      box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
-    }
-    .btn-primary:hover {
-      opacity: 0.95;
-      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
-      background: linear-gradient(135deg, var(--accent-blue), var(--accent-indigo));
     }
 
-    .btn-test {
-      background: rgba(16, 185, 129, 0.15);
-      border-color: rgba(16, 185, 129, 0.4);
-      color: #34d399;
-    }
-    .btn-test:hover {
-      background: rgba(16, 185, 129, 0.25);
-      border-color: #34d399;
-      color: white;
+    .btn-primary:hover {
+      background: var(--accent-blue-hover);
+      border-color: var(--accent-blue-hover);
     }
 
     .btn-xs {
       padding: 0.25rem 0.55rem;
-      font-size: 0.75rem;
-      border-radius: var(--radius-sm);
+      font-size: 0.72rem;
     }
 
-    /* Privacy Toggle Switch */
-    .toggle-container {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
+    .btn-analyze {
+      padding: 0.42rem 1.1rem;
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+    }
+
+    /* Navigation Tabs */
+    .nav-tabs-bar {
       background: var(--bg-surface);
-      padding: 0.4rem 0.8rem;
-      border-radius: var(--radius-full);
-      border: 1px solid var(--border-color);
-      font-size: 0.85rem;
-      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.35rem 1.5rem;
+    }
+
+    .nav-tabs-container {
+      max-width: 1520px;
+      margin: 0 auto;
+      display: flex;
+      gap: 0.4rem;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+
+    .nav-tabs-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .nav-tab {
+      background: transparent;
+      border: none;
       color: var(--text-muted);
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 0.45rem 0.8rem;
+      border-radius: var(--radius-sm);
       cursor: pointer;
-      user-select: none;
+      white-space: nowrap;
       transition: var(--transition);
     }
 
-    .toggle-container:hover {
-      border-color: var(--accent-blue);
+    .nav-tab:hover {
       color: var(--text-main);
-    }
-
-    .toggle-switch {
-      position: relative;
-      width: 34px;
-      height: 18px;
       background: var(--bg-surface-elevated);
-      border-radius: var(--radius-full);
-      transition: var(--transition);
     }
 
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      width: 14px;
-      height: 14px;
-      background: white;
-      border-radius: 50%;
-      transition: var(--transition);
-    }
-
-    .toggle-container.active .toggle-switch {
-      background: var(--accent-blue);
-    }
-
-    .toggle-container.active .toggle-switch::after {
-      transform: translateX(16px);
+    .nav-tab.active {
+      color: var(--accent-blue);
+      background: var(--accent-blue-subtle);
+      font-weight: 700;
     }
 
     /* Main Container */
     main {
-      max-width: 1480px;
-      margin: 0 auto;
-      padding: 1.25rem 1.5rem;
-      width: 100%;
+      max-width: 1520px;
+      margin: 1.25rem auto;
+      padding: 0 1.5rem;
       flex: 1;
+      width: 100%;
+    }
+
+    /* Welcome / First-Open Hero Card */
+    .welcome-banner {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-blue);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--card-shadow);
+      position: relative;
+    }
+
+    .welcome-banner.hidden {
+      display: none !important;
+    }
+
+    .welcome-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--accent-blue);
+    }
+
+    .welcome-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 0.35rem;
+    }
+
+    .welcome-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      max-width: 950px;
+      margin-bottom: 1rem;
+    }
+
+    .welcome-steps {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .welcome-step {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--bg-surface-elevated);
+      padding: 0.5rem 0.8rem;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-color);
+      font-size: 0.78rem;
+    }
+
+    .step-num {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent-blue);
+      color: white;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+    }
+
+    .step-info strong {
+      display: block;
+      color: var(--text-main);
+    }
+
+    .step-info span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .step-arrow {
+      color: var(--text-subtle);
+      font-weight: 700;
+    }
+
+    /* Top KPI Metric Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .kpi-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.2rem;
+      box-shadow: var(--card-shadow);
       display: flex;
       flex-direction: column;
-      gap: 1.25rem;
+      justify-content: space-between;
+      transition: var(--transition);
+    }
+
+    .kpi-card:hover {
+      box-shadow: var(--card-shadow-hover);
+      border-color: var(--border-focus);
+    }
+
+    .kpi-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.4rem;
+    }
+
+    .kpi-label {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+    }
+
+    .kpi-icon {
+      font-size: 1.1rem;
+      opacity: 0.8;
+    }
+
+    .kpi-value {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.2;
+      margin-bottom: 0.2rem;
+    }
+
+    .kpi-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .kpi-meta {
+      margin-top: 0.6rem;
+      font-size: 0.72rem;
     }
 
     /* Conflict Banner */
-    .conflict-banner {
-      background: #fef2f2;
-      border: 1px solid #dc2626;
-      border-left: 6px solid #dc2626;
+    .conflict-card {
+      background: var(--status-danger-bg);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-left: 4px solid var(--status-danger);
       border-radius: var(--radius-md);
       padding: 1rem 1.25rem;
-      display: flex;
-      align-items: flex-start;
-      gap: 1rem;
-      animation: fadeIn 0.25s ease-out;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--card-shadow);
     }
-    .conflict-banner.hidden { display: none; }
+
+    .conflict-card.hidden {
+      display: none !important;
+    }
 
     .conflict-title {
-      font-size: 0.98rem;
-      font-weight: 800;
-      color: #b91c1c;
-      margin-bottom: 0.35rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--status-danger);
+    }
+
+    .conflict-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .conflict-list {
+      margin-top: 0.8rem;
       display: flex;
-      align-items: center;
+      flex-direction: column;
       gap: 0.5rem;
     }
 
     .conflict-item {
-      background: rgba(254, 226, 226, 0.6);
-      border: 1px solid rgba(220, 38, 38, 0.25);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      padding: 0.75rem 1rem;
       border-radius: var(--radius-sm);
-      padding: 0.6rem 0.8rem;
-      margin-top: 0.4rem;
-      font-size: 0.85rem;
-      color: #7f1d1d;
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
-      gap: 0.5rem;
+      gap: 0.6rem;
     }
 
     .conflict-actions {
       display: flex;
-      gap: 0.4rem;
+      gap: 0.35rem;
     }
 
-    /* Grid Layout */
-    .app-grid {
+    .clean-state-banner {
+      background: var(--status-success-bg);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: var(--radius-md);
+      padding: 0.75rem 1.2rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.82rem;
+      color: var(--status-success);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .clean-state-banner.hidden {
+      display: none !important;
+    }
+
+    /* Dashboard Layout Grid */
+    .dashboard-layout {
       display: grid;
-      grid-template-columns: 460px 1fr;
-      gap: 1.5rem;
+      grid-template-columns: 380px 1fr;
+      gap: 1.25rem;
       align-items: start;
     }
 
-    @media (max-width: 1120px) {
-      .app-grid {
+    @media (max-width: 1080px) {
+      .dashboard-layout {
         grid-template-columns: 1fr;
       }
     }
 
-    .input-column, .output-column {
-      display: flex;
-      flex-direction: column;
-      gap: 1.25rem;
-    }
-
     /* Cards */
     .card {
-      background: var(--bg-surface-card);
-      backdrop-filter: blur(14px);
+      background: var(--bg-surface);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      padding: 1.15rem;
-      box-shadow: var(--shadow-sm);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+      box-shadow: var(--card-shadow);
       transition: var(--transition);
     }
+
     .card:hover {
-      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow: var(--card-shadow-hover);
     }
 
     .card-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      margin-bottom: 0.85rem;
-      padding-bottom: 0.65rem;
-      border-bottom: 1px solid var(--border-color);
+      align-items: flex-start;
+      margin-bottom: 1rem;
+      gap: 0.75rem;
     }
 
     .card-title {
-      font-size: 0.95rem;
+      font-size: 1rem;
       font-weight: 700;
       color: var(--text-main);
       display: flex;
@@ -358,235 +600,413 @@
       gap: 0.5rem;
     }
 
-    /* Form Styles */
-    .form-group { margin-bottom: 0.85rem; }
-    .form-group:last-child { margin-bottom: 0; }
-    .form-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .card-icon {
+      font-size: 1.1rem;
+    }
+
+    .card-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+      line-height: 1.4;
+    }
+
+    .attention-card {
+      border-left: 4px solid var(--status-warning);
+    }
+
+    .clarification-grid {
+      display: flex;
+      flex-direction: column;
       gap: 0.65rem;
     }
 
-    label {
+    .clarification-card {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.8rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .clarification-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--accent-blue);
+      text-transform: uppercase;
+    }
+
+    .clarification-question {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      margin-top: 0.2rem;
+      line-height: 1.4;
+    }
+
+    .clarification-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    /* Forms */
+    .form-group {
+      margin-bottom: 0.85rem;
+    }
+
+    .form-group label {
       display: block;
       font-size: 0.75rem;
       font-weight: 700;
       color: var(--text-muted);
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.35rem;
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.03em;
     }
 
-    input[type="text"], input[type="number"], select, textarea {
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
       width: 100%;
       background: var(--bg-surface-elevated);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 0.55rem 0.75rem;
       color: var(--text-main);
-      font-size: 0.88rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.82rem;
       transition: var(--transition);
     }
-    input:focus, select:focus, textarea:focus {
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
       outline: none;
       border-color: var(--accent-blue);
-      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+      box-shadow: 0 0 0 2px var(--accent-blue-subtle);
     }
 
-    textarea { resize: vertical; min-height: 60px; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+    }
+
     .medical-textarea {
-      min-height: 190px;
-      font-family: "SFMono-Regular", Consolas, monospace;
-      font-size: 0.83rem;
-      line-height: 1.55;
+      min-height: 130px;
+      resize: vertical;
+      font-family: monospace;
+      font-size: 0.82rem;
+      line-height: 1.45;
     }
 
-    /* Presets Bar */
+    /* Dropzone Upload */
+    .dropzone-area {
+      border: 2px dashed var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      background: var(--bg-surface-elevated);
+      transition: var(--transition);
+      margin-bottom: 0.85rem;
+    }
+
+    .dropzone-area:hover {
+      border-color: var(--accent-blue);
+      background: var(--accent-blue-subtle);
+    }
+
+    .dropzone-icon {
+      font-size: 1.75rem;
+      margin-bottom: 0.35rem;
+    }
+
+    .dropzone-text {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .dropzone-sub {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    /* Presets Grid */
     .presets-container {
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
       margin-bottom: 0.85rem;
     }
 
     .presets-label {
       font-size: 0.72rem;
       font-weight: 700;
-      color: var(--text-subtle);
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      margin-bottom: 0.4rem;
+      display: block;
     }
 
     .presets-grid {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
       gap: 0.4rem;
     }
 
     .btn-preset {
-      background: rgba(20, 184, 166, 0.08);
-      border: 1px solid rgba(20, 184, 166, 0.25);
-      color: var(--accent-teal);
-      font-size: 0.74rem;
-      padding: 0.25rem 0.55rem;
-    }
-    .btn-preset:hover {
-      background: rgba(20, 184, 166, 0.2);
-      border-color: var(--accent-teal);
-      color: white;
-    }
-
-    /* Quality & Metrics Card */
-    .metrics-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 0.75rem;
-      margin-top: 0.5rem;
-    }
-
-    @media (max-width: 600px) {
-      .metrics-grid { grid-template-columns: 1fr; }
-    }
-
-    .metric-box {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 0.65rem 0.85rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.25rem;
-    }
-
-    .metric-label {
       font-size: 0.72rem;
+      padding: 0.35rem 0.5rem;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      text-align: left;
+      cursor: pointer;
+      transition: var(--transition);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .btn-preset:hover {
+      border-color: var(--accent-blue);
+      color: var(--text-main);
+      background: var(--bg-hover);
+    }
+
+    /* Clinical Tables */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+    }
+
+    .clinical-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      text-align: left;
+    }
+
+    .clinical-table th {
+      background: var(--table-header-bg);
+      color: var(--text-muted);
       font-weight: 700;
-      color: var(--text-subtle);
       text-transform: uppercase;
+      font-size: 0.7rem;
+      letter-spacing: 0.04em;
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid var(--border-color);
     }
 
-    .metric-val {
-      font-size: 1.15rem;
-      font-weight: 800;
+    .clinical-table td {
+      padding: 0.7rem 0.85rem;
+      border-bottom: 1px solid var(--border-color-subtle);
+      color: var(--text-main);
+      vertical-align: middle;
+    }
+
+    .clinical-table tbody tr:nth-child(even) {
+      background: var(--table-row-alt);
+    }
+
+    .clinical-table tbody tr:hover {
+      background: var(--table-row-hover);
+    }
+
+    .table-empty-cell {
+      text-align: center;
+      padding: 1.75rem !important;
+      color: var(--text-subtle);
+      font-style: italic;
+    }
+
+    .entity-name {
       display: flex;
-      align-items: baseline;
-      gap: 0.35rem;
+      align-items: center;
+      gap: 0.4rem;
     }
 
-    .metric-sub {
+    .item-normalized {
       font-size: 0.72rem;
       color: var(--text-muted);
+      background: var(--bg-surface-elevated);
+      padding: 0.15rem 0.4rem;
+      border-radius: var(--radius-sm);
+      margin-left: 0.4rem;
+    }
+
+    .cell-val {
+      font-family: monospace;
+      font-size: 0.85rem;
+    }
+
+    .cell-abnormal {
+      color: var(--status-danger);
     }
 
     /* Badges */
     .badge {
-      font-size: 0.68rem;
+      font-size: 0.7rem;
       font-weight: 700;
-      padding: 0.15rem 0.45rem;
+      padding: 0.2rem 0.5rem;
       border-radius: var(--radius-full);
       display: inline-flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 0.3rem;
       text-transform: uppercase;
       letter-spacing: 0.02em;
     }
 
-    .badge-user { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
-    .badge-ai { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
-    .badge-verified { background: rgba(16, 185, 129, 0.25); color: #10b981; border: 1px solid #10b981; font-weight: 800; }
-    .badge-edited { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.4); }
-    .badge-unverified { background: rgba(100, 116, 139, 0.2); color: #94a3b8; border: 1px solid rgba(100, 116, 139, 0.3); }
-
-    .badge-high { background: rgba(16, 185, 129, 0.18); color: #10b981; }
-    .badge-medium { background: rgba(245, 158, 11, 0.18); color: #f59e0b; }
-    .badge-low { background: rgba(249, 115, 22, 0.18); color: #f97316; }
-
-    .status-abnormal { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.4); font-weight: 800; }
-    .status-normal { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.25); }
-    .status-unassessed { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid rgba(148, 163, 184, 0.25); }
-
-    /* Item Cards in Output */
-    .item-list {
-      display: flex;
-      flex-direction: column;
-      gap: 0.65rem;
-    }
-
-    .item-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 0.8rem 1rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.4rem;
-      transition: var(--transition);
-    }
-    .item-card:hover {
-      border-color: rgba(255, 255, 255, 0.2);
+    .badge-user {
       background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
     }
 
-    .item-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 0.4rem;
+    .badge-source {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      font-size: 0.68rem;
     }
 
-    .item-title-group {
-      display: flex;
-      align-items: baseline;
-      gap: 0.5rem;
-      flex-wrap: wrap;
+    .badge-verified {
+      background: var(--status-success-bg);
+      color: var(--status-success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
-    .item-title {
+    .badge-unverified {
+      background: var(--status-warning-bg);
+      color: var(--status-warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-high {
+      background: var(--status-success-bg);
+      color: var(--status-success);
+    }
+
+    .badge-medium {
+      background: var(--status-warning-bg);
+      color: var(--status-warning);
+    }
+
+    .badge-low {
+      background: var(--status-danger-bg);
+      color: var(--status-danger);
+    }
+
+    .status-normal {
+      background: var(--status-success-bg);
+      color: var(--status-success);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+    }
+
+    .status-abnormal {
+      background: var(--status-danger-bg);
+      color: var(--status-danger);
+      border: 1px solid rgba(239, 68, 68, 0.25);
+    }
+
+    .status-unassessed {
+      background: var(--bg-surface-elevated);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    .badge-conflict {
+      background: var(--status-danger-bg);
+      color: var(--status-danger);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .badge-attention {
+      background: var(--status-warning-bg);
+      color: var(--status-warning);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .badge-count {
+      background: var(--accent-blue-subtle);
+      color: var(--accent-blue);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    .badge-review {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+    }
+
+    /* Patient Overview Grid */
+    .patient-profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.85rem;
+    }
+
+    .profile-field {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.75rem 0.9rem;
+    }
+
+    .profile-field-label {
+      font-size: 0.68rem;
       font-weight: 700;
+      color: var(--text-subtle);
+      display: block;
+      margin-bottom: 0.2rem;
+      letter-spacing: 0.04em;
+    }
+
+    .profile-field-value {
       font-size: 0.95rem;
       color: var(--text-main);
+      display: block;
     }
 
-    .item-normalized {
-      font-size: 0.75rem;
-      color: var(--accent-cyan);
-      background: rgba(6, 182, 212, 0.1);
-      padding: 0.1rem 0.4rem;
+    .profile-field-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-top: 0.2rem;
+    }
+
+    /* Responsible AI Disclaimer Banner */
+    .responsible-ai-banner {
+      background: var(--accent-blue-subtle);
+      border: 1px solid rgba(59, 130, 246, 0.2);
       border-radius: var(--radius-sm);
-      font-family: monospace;
-    }
-
-    .badges-wrapper {
+      padding: 0.6rem 0.85rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.78rem;
+      color: var(--accent-blue);
       display: flex;
       align-items: center;
-      gap: 0.35rem;
-      flex-wrap: wrap;
+      gap: 0.5rem;
     }
 
-    .item-controls {
+    /* Source-Document Instructions */
+    .steps-list {
       display: flex;
-      gap: 0.35rem;
-      align-items: center;
+      flex-direction: column;
+      gap: 0.5rem;
     }
 
-    .item-source-quote {
-      font-size: 0.74rem;
-      color: var(--text-subtle);
-      font-style: italic;
-      background: rgba(0, 0, 0, 0.25);
-      padding: 0.25rem 0.55rem;
+    .step-card-row {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
-      border-left: 2px solid var(--border-color);
-      word-break: break-word;
-    }
-
-    /* Clarification Box */
-    .clarification-item {
-      background: rgba(99, 102, 241, 0.08);
-      border: 1px solid rgba(99, 102, 241, 0.25);
-      border-radius: var(--radius-md);
-      padding: 0.75rem 0.95rem;
+      padding: 0.75rem 1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -594,95 +1014,168 @@
       flex-wrap: wrap;
     }
 
-    .clarification-text {
-      font-size: 0.85rem;
-      color: #c7d2fe;
-      flex: 1;
-      min-width: 250px;
-    }
-
-    .clarification-actions {
+    .step-card-left {
       display: flex;
-      gap: 0.35rem;
+      align-items: center;
+      gap: 0.6rem;
+      flex: 1;
     }
 
-    /* Summary Card */
-    .summary-card {
-      background: linear-gradient(135deg, rgba(30, 58, 138, 0.2), rgba(15, 23, 42, 0.8));
-      border: 1px solid rgba(59, 130, 246, 0.3);
-    }
-
-    .summary-section-title {
-      font-size: 0.75rem;
-      font-weight: 800;
-      color: #93c5fd;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-top: 0.5rem;
-      margin-bottom: 0.2rem;
-    }
-
-    .summary-text {
-      font-size: 0.9rem;
-      line-height: 1.65;
-      color: #e2e8f0;
-    }
-
-    .summary-disclaimer {
-      margin-top: 0.75rem;
-      padding-top: 0.5rem;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      font-size: 0.74rem;
+    .step-card-index {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
       color: var(--text-muted);
-      font-style: italic;
-    }
-
-    /* Privacy Redaction */
-    .privacy-mode .redact-val {
-      font-family: monospace;
-      color: var(--accent-cyan);
-      background: rgba(6, 182, 212, 0.15);
-      padding: 0.05rem 0.35rem;
-      border-radius: 3px;
-    }
-
-    /* Modal Styling */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      z-index: 1000;
+      font-size: 0.72rem;
+      font-weight: 700;
       display: flex;
       align-items: center;
       justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .step-card-text {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .step-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      flex-shrink: 0;
+    }
+
+    /* Patient-Friendly Summary */
+    .summary-card {
+      border-top: 3px solid var(--accent-blue);
+    }
+
+    .summary-text {
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-main);
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 1rem 1.15rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .summary-disclaimer {
+      font-size: 0.75rem;
+      color: var(--text-subtle);
+      line-height: 1.4;
+    }
+
+    .empty-state-notice {
+      text-align: center;
       padding: 1.5rem;
+      color: var(--text-subtle);
+      font-size: 0.82rem;
+      font-style: italic;
+    }
+
+    /* Export Unified Dropdown */
+    .export-dropdown {
+      position: relative;
+      display: inline-block;
+    }
+
+    .btn-export {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      font-weight: 700;
+    }
+
+    .export-menu {
+      position: absolute;
+      right: 0;
+      top: calc(100% + 5px);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--card-shadow-hover);
+      min-width: 200px;
+      display: none;
+      flex-direction: column;
+      z-index: 50;
+      overflow: hidden;
+    }
+
+    .export-menu.active {
+      display: flex;
+    }
+
+    .export-item {
+      padding: 0.6rem 0.9rem;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      background: transparent;
+      border: none;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: var(--transition);
+    }
+
+    .export-item:hover {
+      background: var(--bg-hover);
+      color: var(--accent-blue);
+    }
+
+    /* Privacy Redaction */
+    .redact-val {
+      background: var(--status-warning-bg);
+      color: var(--status-warning);
+      border: 1px dashed var(--status-warning);
+      padding: 0.1rem 0.35rem;
+      border-radius: var(--radius-sm);
+      font-family: monospace;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    /* Modals */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 1rem;
+      visibility: hidden;
       opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.2s ease;
+      transition: var(--transition);
     }
 
     .modal-overlay.active {
+      visibility: visible;
       opacity: 1;
-      pointer-events: auto;
     }
 
     .modal-container {
       background: var(--bg-surface);
       border: 1px solid var(--border-color);
-      border-radius: var(--radius-lg);
-      max-width: 680px;
+      border-radius: var(--radius-md);
       width: 100%;
-      max-height: 85vh;
-      overflow-y: auto;
+      max-width: 580px;
       padding: 1.5rem;
-      box-shadow: var(--shadow-lg);
-      transform: translateY(15px);
-      transition: transform 0.2s ease;
-    }
-
-    .modal-overlay.active .modal-container {
-      transform: translateY(0);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      max-height: 90vh;
+      overflow-y: auto;
     }
 
     .modal-header {
@@ -690,179 +1183,292 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
-      padding-bottom: 0.5rem;
       border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.6rem;
     }
 
     .modal-title {
-      font-size: 1.1rem;
-      font-weight: 800;
+      font-size: 1.05rem;
+      font-weight: 700;
       color: var(--text-main);
     }
 
-    /* Toast */
+    /* Toast Notification */
     .toast {
       position: fixed;
-      bottom: 2rem; right: 2rem;
+      bottom: 1.5rem;
+      right: 1.5rem;
       background: var(--bg-surface-elevated);
       color: var(--text-main);
-      border: 1px solid var(--accent-blue);
-      border-radius: var(--radius-md);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
       padding: 0.75rem 1.25rem;
-      box-shadow: var(--shadow-lg);
-      font-size: 0.85rem;
+      box-shadow: var(--card-shadow-hover);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.82rem;
       font-weight: 600;
+      z-index: 2000;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: var(--transition);
+    }
+
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* Footer */
+    footer {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-color);
+      padding: 1rem 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .safety-notice {
+      max-width: 1520px;
+      margin: 0 auto;
+      font-size: 0.75rem;
+      color: var(--text-muted);
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      z-index: 1200;
-      opacity: 0;
-      transform: translateY(20px);
-      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      pointer-events: none;
-    }
-    .toast.show { opacity: 1; transform: translateY(0); }
-
-    /* Test Results UI */
-    .test-suite-summary {
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      border-radius: var(--radius-md);
-      padding: 0.75rem 1rem;
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: #34d399;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
-    .test-result-row {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.45rem 0.6rem;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 0.82rem;
-    }
-    .test-result-row:last-child { border-bottom: none; }
-    .test-pass { color: #34d399; font-weight: 700; }
-    .test-fail { color: #f87171; font-weight: 700; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(-4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Print Styles */
+    /* Print Optimization */
     @media print {
-      header, .input-column, .presets-container, .export-bar, footer, .item-controls, .toggle-container {
+      body {
+        background: #fff !important;
+        color: #000 !important;
+      }
+      header, .nav-tabs-bar, .welcome-banner, #inputColumn, .conflict-actions, .kpi-meta,
+      .btn, .export-dropdown, .header-actions, .item-controls, footer, .modal-overlay {
         display: none !important;
       }
-      body { background: white !important; color: black !important; }
-      .app-grid { display: block !important; }
-      .output-column { width: 100% !important; }
-      .card { background: white !important; border: 1px solid #ccc !important; color: black !important; break-inside: avoid; margin-bottom: 1rem; }
-      .item-card { background: #f8fafc !important; border: 1px solid #ddd !important; color: black !important; }
-      .item-title, .summary-text, .metric-val { color: black !important; }
+      .dashboard-layout {
+        display: block !important;
+      }
+      .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+        background: #fff !important;
+        page-break-inside: avoid;
+      }
+      .clinical-table th {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+      }
+      .clinical-table td {
+        color: #000 !important;
+      }
     }
+
   </style>
-  <!-- Client-side PDF & OCR Libraries for Offline/Local Document Ingestion -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
+  <!-- Top Navigation / Branding Header -->
   <header role="banner">
     <div class="header-container">
+      <!-- Left: Medical Intelligence Branding -->
       <div class="brand">
-        <div class="brand-icon" aria-hidden="true">ML</div>
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </div>
         <div class="brand-text">
           <h1>MedLens</h1>
-          <p>Clinical Intelligence & Record Review Engine</p>
+          <p>Clinical Intelligence &amp; Record Review</p>
         </div>
       </div>
 
-      <div class="header-badges">
-        <span class="system-badge" title="No network calls are made. Processing occurs strictly in your browser memory.">
-          🛡️ Local Browser Engine
+      <!-- Center: Engine Status Indicator -->
+      <div class="header-engine">
+        <span class="engine-badge" id="aiModeIndicator">
+          <span class="engine-dot"></span>
+          <span id="aiModeLabel">Local Deterministic Engine</span>
         </span>
-        <button class="btn btn-xs" onclick="openPatientHistoryModal()" aria-label="Saved patient records and history">
-          <span>📁 Saved Records</span>
-        </button>
-        <button class="btn btn-xs" onclick="openComparisonModal()" aria-label="Compare previous and current clinical reports">
-          <span>📊 Compare Reports</span>
-        </button>
-        <button class="btn btn-test" onclick="openTestModal()" aria-label="Run automated test suite">
-          <span id="testSuiteBtnLabel">🧪 Test Suite (35 Tests)</span>
-        </button>
-        <button class="toggle-container" id="privacyToggleBtn" onclick="togglePrivacyMode()" aria-pressed="false" aria-label="Toggle demo privacy mode">
-          <span class="toggle-switch"></span>
+      </div>
+
+      <!-- Right: System Controls -->
+      <div class="header-actions">
+        <!-- Privacy Mode Toggle -->
+        <button class="header-btn" id="privacyToggleBtn" onclick="togglePrivacyMode()" aria-pressed="false" title="Toggle PHI Redaction">
           <span id="privacyToggleLabel">🔒 Privacy Mode: OFF</span>
         </button>
-        <button class="btn btn-primary" id="analyzeBtn" onclick="processAllData()" aria-label="Parse and analyze clinical information">
-          <span id="analyzeBtnLabel">⚡ Analyze & Review</span>
+
+        <!-- Light / Dark Theme Switch -->
+        <button class="header-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle light or dark theme" title="Switch Theme">
+          🌙 Dark
+        </button>
+
+        <!-- Stored Records -->
+        <button class="header-btn" onclick="openPatientHistoryModal()" title="View SQLite Stored Records">
+          📁 Records
+        </button>
+
+        <!-- Test Suite -->
+        <button class="header-btn" onclick="openTestModal()" title="Run In-Browser Tests">
+          <span id="testSuiteBtnLabel">🧪 Tests (35)</span>
+        </button>
+
+        <!-- Primary Analyze Action -->
+        <button class="btn btn-primary btn-analyze" id="analyzeBtn" onclick="processAllData()" aria-label="Parse and analyze clinical record">
+          <span id="analyzeBtnLabel">⚡ Analyze &amp; Review</span>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- Secondary Dashboard Navigation Tabs -->
+  <nav class="nav-tabs-bar" role="navigation" aria-label="Dashboard Navigation">
+    <div class="nav-tabs-container">
+      <button class="nav-tab active" onclick="switchDashboardTab('overview')" id="tab-overview">📊 Overview Dashboard</button>
+      <button class="nav-tab" onclick="switchDashboardTab('patient')" id="tab-patient">👤 Patient Intake</button>
+      <button class="nav-tab" onclick="switchDashboardTab('report')" id="tab-report">📄 Medical Report Input</button>
+      <button class="nav-tab" onclick="switchDashboardTab('medications')" id="tab-medications">💊 Medications</button>
+      <button class="nav-tab" onclick="switchDashboardTab('labs')" id="tab-labs">🔬 Lab Results</button>
+      <button class="nav-tab" onclick="switchDashboardTab('review')" id="tab-review">⚠️ Review &amp; Conflicts</button>
+      <button class="nav-tab" onclick="openComparisonModal()" id="tab-history">📈 Longitudinal Compare</button>
+    </div>
+  </nav>
+
   <!-- Main Content Layout -->
   <main id="mainContainer" role="main">
-    
-    <!-- Conflict Warning Banner (CRITICAL: Inconsistency Detection & Resolution) -->
-    <section class="conflict-banner hidden" id="conflictBanner" aria-live="assertive" aria-label="Clinical Data Conflicts">
-      <div class="conflict-icon" style="font-size: 1.6rem; color: #dc2626;" aria-hidden="true">⚠️</div>
-      <div style="flex: 1;">
-        <div class="conflict-title">⚠️ DATA CONFLICTS DETECTED — CLINICAL REVIEW REQUIRED</div>
-        <p style="font-size: 0.8rem; color: #991b1b; margin-bottom: 0.4rem;">
-          Inconsistencies detected between patient-reported information and medical report documentation. Please review and resolve each discrepancy.
-        </p>
-        <div id="conflictList"></div>
+
+    <!-- Welcome / First-Open Onboarding Card -->
+    <section class="welcome-banner" id="welcomeBanner">
+      <div class="welcome-header">
+        <div class="welcome-badge">🏥 Clinical Intelligence Engine</div>
+        <button class="btn btn-xs" onclick="dismissWelcomeBanner()" aria-label="Dismiss welcome banner">✕</button>
+      </div>
+      <h2 class="welcome-title">Transform medical reports into structured, traceable information for safer review.</h2>
+      <p class="welcome-desc">
+        MedLens extracts patient information, medications, allergies, laboratory results and documented instructions from medical records while preserving source provenance and avoiding unsupported clinical conclusions.
+      </p>
+      <div class="welcome-steps">
+        <div class="welcome-step">
+          <div class="step-num">1</div>
+          <div class="step-info">
+            <strong>Add Patient Intake</strong>
+            <span>Review or enter demographics &amp; reported allergies</span>
+          </div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="welcome-step">
+          <div class="step-num">2</div>
+          <div class="step-info">
+            <strong>Upload / Paste Report</strong>
+            <span>Direct text, file ingestion, or 1-click load a demo case</span>
+          </div>
+        </div>
+        <div class="step-arrow">→</div>
+        <div class="welcome-step">
+          <div class="step-num">3</div>
+          <div class="step-info">
+            <strong>Analyze &amp; Review</strong>
+            <span>Verify findings, resolve conflicts &amp; export record</span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Top Dashboard Metrics: Completeness, Confidence & Human Verification -->
-    <section class="card" aria-label="Record Completeness and Quality Status">
-      <div class="card-header" style="margin-bottom: 0.4rem; padding-bottom: 0.4rem;">
-        <span class="card-title" style="font-size: 0.85rem;">📊 Clinical Record Quality & Verification Status</span>
-        <span style="font-size: 0.74rem; color: var(--text-muted);">Source-Grounded Traceability</span>
+    <!-- Top Summary KPI Metric Cards -->
+    <section class="kpi-grid" aria-label="Clinical Record Quick Overview">
+      <!-- Card 1: Patient Profile -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Patient Profile</span>
+          <span class="kpi-icon" aria-hidden="true">👤</span>
+        </div>
+        <div class="kpi-value" id="kpiPatientName">John Doe</div>
+        <div class="kpi-sub" id="kpiPatientDemographics">45 yrs • Male</div>
+        <div class="kpi-meta"><span class="badge badge-user">User Provided</span></div>
       </div>
-      <div class="metrics-grid">
-        <div class="metric-box">
-          <span class="metric-label">Record Completeness</span>
-          <div class="metric-val" style="color: #60a5fa;"><span id="metricCompleteness">0</span>%</div>
-          <span class="metric-sub" id="metricCompletenessDetail">Evaluating baseline fields</span>
+
+      <!-- Card 2: Record Completeness -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Record Status</span>
+          <span class="kpi-icon" aria-hidden="true">📊</span>
         </div>
-        <div class="metric-box">
-          <span class="metric-label">Extraction Confidence</span>
-          <div class="metric-val" style="color: #34d399;"><span id="metricHighConf">0</span> <span style="font-size: 0.8rem; color: var(--text-muted);">High</span></div>
-          <span class="metric-sub" id="metricConfBreakdown">0 Medium • 0 Low</span>
-        </div>
-        <div class="metric-box">
-          <span class="metric-label">Human Verified</span>
-          <div class="metric-val" style="color: #a78bfa;"><span id="metricVerifiedCount">0</span>/<span id="metricTotalFields">0</span></div>
-          <span class="metric-sub">Verified by clinician</span>
-        </div>
+        <div class="kpi-value"><span id="metricCompleteness">0</span>%</div>
+        <div class="kpi-sub" id="metricCompletenessDetail">Evaluating baseline fields</div>
+        <div class="kpi-meta"><span id="metricTotalFieldsBadge" class="badge badge-review">0 fields extracted</span></div>
       </div>
-      <div id="aiModeIndicator" style="margin-top: 0.5rem; padding: 0.4rem 0.8rem; background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: var(--radius-sm); font-size: 0.78rem; display: flex; justify-content: space-between; align-items: center;" aria-live="polite">
-        <span id="aiModeLabel">ℹ️ <strong>Engine:</strong> Local Automated Extraction (Deterministic Clinical Regex)</span>
-        <span id="aiBackendStatus" style="color: var(--text-subtle);">Backend: Checking API...</span>
+
+      <!-- Card 3: Review Status -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Review Status</span>
+          <span class="kpi-icon" aria-hidden="true">✓</span>
+        </div>
+        <div class="kpi-value"><span id="metricVerifiedCount">0</span>/<span id="metricTotalFields">0</span></div>
+        <div class="kpi-sub" id="metricConfBreakdown">0 Medium • 0 Low</div>
+        <div class="kpi-meta"><span id="metricNeedsReviewBadge" class="badge badge-medium">0 need review</span></div>
+      </div>
+
+      <!-- Card 4: AI & Engine Status -->
+      <div class="kpi-card">
+        <div class="kpi-header">
+          <span class="kpi-label">Engine &amp; Security</span>
+          <span class="kpi-icon" aria-hidden="true">⚡</span>
+        </div>
+        <div class="kpi-value" style="font-size: 1.15rem;" id="kpiEngineStatus">Local Engine</div>
+        <div class="kpi-sub" id="aiBackendStatus">Deterministic Clinical Regex</div>
+        <div class="kpi-meta"><span class="badge badge-verified">100% Client-Side</span></div>
       </div>
     </section>
 
-    <div class="app-grid">
+    <!-- Potential Clinical Conflicts Section -->
+    <div id="conflictSectionContainer" class="dashboard-card-section">
+      <section class="conflict-card hidden" id="conflictBanner" aria-live="assertive" aria-label="Clinical Data Conflicts">
+        <div class="conflict-header">
+          <h3 class="conflict-title">⚠️ Potential Clinical Conflicts Detected</h3>
+          <p class="conflict-desc">Inconsistencies detected between patient-reported intake and medical report documentation. Review before accepting structured record.</p>
+        </div>
+        <div id="conflictList" class="conflict-list"></div>
+      </section>
+      <div id="noConflictNotice" class="clean-state-banner">
+        <span>✓</span> <strong>No Clinical Conflicts Detected</strong> — Patient-reported baseline aligns with extracted documentation.
+      </div>
+    </div>
+
+    <!-- Review Required (Clarifications Engine) -->
+    <section class="card attention-card dashboard-card-section" id="clarificationSection" aria-labelledby="clarificationTitle">
+      <div class="card-header">
+        <div>
+          <h3 id="clarificationTitle" class="card-title">
+            <span class="card-icon" aria-hidden="true">⚠️</span> Review Required
+          </h3>
+          <p class="card-desc">These items require clarification or human verification because information is missing, contradictory, or uncertain.</p>
+        </div>
+        <span class="badge badge-attention">Safety Protocol</span>
+      </div>
+      <div id="clarificationList" class="clarification-grid"></div>
+    </section>
+
+    <!-- Main Responsive Dashboard Grid -->
+    <div class="dashboard-layout">
       
-      <!-- LEFT COLUMN: Patient Intake & Unstructured Input Area -->
-      <div class="input-column">
+      <!-- LEFT COLUMN: Patient Intake & Unstructured Document Input -->
+      <div class="input-column" id="inputColumn">
         
-        <!-- SECTION 1: Patient Intake Form -->
-        <section class="card" aria-labelledby="intakeFormTitle">
+        <!-- SECTION 1: Patient Overview & Intake Form -->
+        <section class="card" id="intakeFormSection" aria-labelledby="intakeFormTitle">
           <div class="card-header">
-            <h2 id="intakeFormTitle" class="card-title">
-              <span aria-hidden="true">👤</span> Patient Intake Information
-            </h2>
+            <div>
+              <h2 id="intakeFormTitle" class="card-title">
+                <span class="card-icon" aria-hidden="true">👤</span> Patient Intake
+              </h2>
+              <p class="card-desc">Basic information supplied by the patient or clinician baseline.</p>
+            </div>
             <button class="btn btn-xs" onclick="resetIntakeForm()" aria-label="Reset patient intake form">Reset</button>
           </div>
 
@@ -889,7 +1495,7 @@
 
             <div class="form-group">
               <label for="pSymptoms">Current Symptoms</label>
-              <textarea id="pSymptoms" placeholder="e.g. Fatigue, episodic dizziness, lightheadedness">Fatigue, episodic dizziness</textarea>
+              <textarea id="pSymptoms" placeholder="e.g. Fatigue, episodic dizziness">Fatigue, episodic dizziness</textarea>
             </div>
 
             <div class="form-group">
@@ -899,35 +1505,45 @@
 
             <div class="form-group">
               <label for="pAllergies">Known Allergies (Patient Reported)</label>
-              <textarea id="pAllergies" placeholder="e.g. 'No Known Drug Allergies' or 'Penicillin'">No Known Drug Allergies</textarea>
+              <textarea id="pAllergies" placeholder="e.g. No Known Drug Allergies or Penicillin">No Known Drug Allergies</textarea>
             </div>
 
             <div class="form-group">
               <label for="pMedications">Current Medications (Self-Reported)</label>
-              <textarea id="pMedications" placeholder="e.g. Paracetamol 500mg as needed, Metformin 500mg BID">Paracetamol 500mg as needed</textarea>
+              <textarea id="pMedications" placeholder="e.g. Paracetamol 500mg as needed">Paracetamol 500mg as needed</textarea>
             </div>
           </form>
         </section>
 
-        <!-- SECTION 2: Medical Report Input & 7 Judge Presets -->
-        <section class="card" aria-labelledby="reportInputTitle">
+        <!-- SECTION 2: Medical Report Analysis Input -->
+        <section class="card" id="reportInputSection" aria-labelledby="reportInputTitle">
           <div class="card-header">
-            <h2 id="reportInputTitle" class="card-title">
-              <span aria-hidden="true">📄</span> Unstructured Medical Report
-            </h2>
-            <button class="btn btn-xs" onclick="openUploadDialog()" aria-label="Upload document file">📁 Upload File</button>
+            <div>
+              <h2 id="reportInputTitle" class="card-title">
+                <span class="card-icon" aria-hidden="true">📄</span> Medical Report Analysis
+              </h2>
+              <p class="card-desc">Upload or paste an unstructured medical report. MedLens extracts relevant clinical information and organizes it into structured fields for review.</p>
+            </div>
+            <button class="btn btn-xs" onclick="openUploadDialog()" aria-label="Upload document file">📁 Upload</button>
+          </div>
+
+          <!-- Document Upload Dropzone -->
+          <div class="dropzone-area" onclick="openUploadDialog()" role="button" tabindex="0" aria-label="Upload clinical document">
+            <div class="dropzone-icon" aria-hidden="true">📁</div>
+            <div class="dropzone-text">Upload Document (PDF, Image, Text)</div>
+            <div class="dropzone-sub">Supports .pdf, .png, .jpg, .txt, .json, .csv, .md (Max 10MB)</div>
           </div>
 
           <!-- Competition Judge Presets -->
           <div class="presets-container">
             <span class="presets-label">Competition Demo Cases (1-Click Load):</span>
             <div class="presets-grid">
-              <button class="btn btn-preset" onclick="loadCase(1)" title="Clean cardiology case with lipid panel">Case 1: Cardiology</button>
-              <button class="btn btn-preset" onclick="loadCase(2)" title="Diabetes with elevated HbA1c and renal markers">Case 2: Diabetic Abnormal</button>
-              <button class="btn btn-preset" onclick="loadCase(3)" title="Intake NKDA vs Report Sulfa/Shellfish allergy contradiction">Case 3: Allergy Conflict</button>
-              <button class="btn btn-preset" onclick="loadCase(4)" title="Lab values without reference ranges demonstrating safety boundary">Case 4: Missing Ranges</button>
-              <button class="btn btn-preset" onclick="loadCase(5)" title="Dose escalation and medication ambiguity">Case 5: Dose Escalation</button>
-              <button class="btn btn-preset" onclick="loadCase(6)" title="Messy unformatted clinical note">Case 6: Unstructured EHR</button>
+              <button type="button" class="btn-preset" onclick="loadCase(1)" title="Clean cardiology case with lipid panel">Case 1: Cardiology</button>
+              <button type="button" class="btn-preset" onclick="loadCase(2)" title="Diabetes with elevated HbA1c and renal markers">Case 2: Diabetic Abnormal</button>
+              <button type="button" class="btn-preset" onclick="loadCase(3)" title="Intake NKDA vs Report Sulfa/Shellfish allergy contradiction">Case 3: Allergy Conflict</button>
+              <button type="button" class="btn-preset" onclick="loadCase(4)" title="Lab values without reference ranges demonstrating safety boundary">Case 4: Missing Ranges</button>
+              <button type="button" class="btn-preset" onclick="loadCase(5)" title="Dose escalation and medication ambiguity">Case 5: Dose Escalation</button>
+              <button type="button" class="btn-preset" onclick="loadCase(6)" title="Messy unformatted clinical note">Case 6: Unstructured EHR</button>
             </div>
           </div>
 
@@ -944,45 +1560,43 @@
 
       </div>
 
-      <!-- RIGHT COLUMN: Structured Clinical Record & Verification Output -->
-      <div class="output-column">
+      <!-- RIGHT COLUMN: Structured Clinical Record Dashboard Cards -->
+      <div class="output-column" id="outputColumn">
 
-        <!-- Export Actions Bar -->
-        <section class="card" style="padding: 0.7rem 1rem;" aria-label="Record Export Actions">
+        <!-- Unified Export & Quick Bar -->
+        <section class="card" style="padding: 0.75rem 1.25rem; margin-bottom: 1.25rem;" aria-label="Record Export Actions">
           <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Export Structured Record:</span>
-            <div class="export-bar" style="display: flex; gap: 0.45rem;">
-              <button class="btn btn-xs" onclick="copyAsText()" aria-label="Copy record as formatted text">📋 Text</button>
-              <button class="btn btn-xs" onclick="copyAsMarkdown()" aria-label="Copy record as markdown">📄 Markdown</button>
-              <button class="btn btn-xs" onclick="copyAsJSON()" aria-label="Copy record as structured JSON">📊 JSON</button>
-              <button class="btn btn-xs" onclick="window.print()" aria-label="Print structured record">🖨️ Print</button>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Structured Record Output</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+              <!-- Unified Export Dropdown -->
+              <div class="export-dropdown" id="exportDropdown">
+                <button class="btn btn-xs btn-export" onclick="toggleExportMenu()" id="exportMenuBtn" aria-haspopup="true" aria-expanded="false">
+                  📥 Export Record ▾
+                </button>
+                <div class="export-menu" id="exportMenu">
+                  <button class="export-item" onclick="copyAsText(); toggleExportMenu();">📋 Formatted Plain Text</button>
+                  <button class="export-item" onclick="copyAsMarkdown(); toggleExportMenu();">📄 Markdown Document</button>
+                  <button class="export-item" onclick="copyAsJSON(); toggleExportMenu();">📊 Structured JSON</button>
+                  <button class="export-item" onclick="window.print(); toggleExportMenu();">🖨️ Print Clinical Record</button>
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
-        <!-- Information Requiring Clarification (Feature 8) -->
-        <section class="card" id="clarificationSection" aria-labelledby="clarificationTitle">
-          <div class="card-header" style="margin-bottom: 0.5rem; padding-bottom: 0.5rem;">
-            <h3 id="clarificationTitle" class="card-title" style="color: #c7d2fe;">
-              <span aria-hidden="true">❓</span> Information Requiring Clarification
-            </h3>
-            <span class="badge badge-ai">Automated Safety Checks</span>
+        <!-- Patient-Friendly Summary Card -->
+        <section class="card summary-card dashboard-card-section" id="summarySection" aria-labelledby="summaryTitle">
+          <div class="card-header">
+            <div>
+              <h3 id="summaryTitle" class="card-title">
+                <span class="card-icon" aria-hidden="true">💬</span> Patient-Friendly Summary
+              </h3>
+              <p class="card-desc">A concise summary of information documented in the available records. This summary does not diagnose conditions or provide treatment recommendations.</p>
+            </div>
+            <span class="badge badge-review">Review Only</span>
           </div>
-          <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.65rem;">
-            Targeted clarification questions based on missing, contradictory, or ungrounded data in source records:
-          </p>
-          <div id="clarificationList" class="item-list"></div>
-        </section>
-
-        <!-- Patient-Friendly Narrative Synthesis (Feature 11) -->
-        <section class="card summary-card" aria-labelledby="summaryTitle">
-          <div class="card-header" style="margin-bottom: 0.4rem; padding-bottom: 0.4rem;">
-            <h3 id="summaryTitle" class="card-title" style="color: #93c5fd;">
-              <span aria-hidden="true">💬</span> Patient-Friendly Synthesis
-            </h3>
-            <span class="badge badge-ai">Review Only</span>
-          </div>
-          <div class="summary-section-title">Source-Derived Facts & Organized Observations:</div>
           <div class="summary-text" id="patientSummaryText">
             Enter patient details or load a sample case to generate a synthesized plain-English summary.
           </div>
@@ -991,49 +1605,124 @@
           </div>
         </section>
 
-        <!-- 1. Patient Profile Card -->
-        <section class="card" aria-labelledby="patientProfileTitle">
+        <!-- Patient Overview Card -->
+        <section class="card dashboard-card-section" id="patientOverviewSection" aria-labelledby="patientProfileTitle">
           <div class="card-header">
-            <h3 id="patientProfileTitle" class="card-title">👤 Patient Profile & Baseline</h3>
-            <span class="badge badge-user">👤 User Provided</span>
+            <div>
+              <h3 id="patientProfileTitle" class="card-title">
+                <span class="card-icon" aria-hidden="true">👤</span> Patient Overview
+              </h3>
+              <p class="card-desc">Basic information supplied by the patient or extracted from the medical record.</p>
+            </div>
+            <span class="badge badge-user">User Provided</span>
           </div>
-          <div id="profileDisplay" class="item-list"></div>
+          <div id="profileDisplay"></div>
         </section>
 
-        <!-- 2. Current Medications Card with Human Verification -->
-        <section class="card" aria-labelledby="medicationsTitle">
+        <!-- Medications Card -->
+        <section class="card dashboard-card-section" id="medicationsSection" aria-labelledby="medicationsTitle">
           <div class="card-header">
-            <h3 id="medicationsTitle" class="card-title">💊 Active Medications & Regimen</h3>
-            <span id="medCountBadge" class="badge badge-ai">0 items</span>
+            <div>
+              <h3 id="medicationsTitle" class="card-title">
+                <span class="card-icon" aria-hidden="true">💊</span> Medications
+              </h3>
+              <p class="card-desc">Medications documented in the available records, including dosage and frequency when explicitly provided.</p>
+            </div>
+            <span id="medCountBadge" class="badge badge-count">0 items</span>
           </div>
-          <div id="medicationsDisplay" class="item-list"></div>
+          <div class="table-responsive">
+            <table class="clinical-table" id="medicationsTable">
+              <thead>
+                <tr>
+                  <th>Medication</th>
+                  <th>Dosage</th>
+                  <th>Frequency</th>
+                  <th>Source</th>
+                  <th>Confidence</th>
+                  <th>Verification</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="medicationsDisplay"></tbody>
+            </table>
+          </div>
         </section>
 
-        <!-- 3. Allergies & Sensitivities Card -->
-        <section class="card" aria-labelledby="allergiesTitle">
+        <!-- Allergies & Adverse Reactions Card -->
+        <section class="card dashboard-card-section" id="allergiesSection" aria-labelledby="allergiesTitle">
           <div class="card-header">
-            <h3 id="allergiesTitle" class="card-title">⚠️ Allergies & Adverse Reactions</h3>
-            <span id="allergyCountBadge" class="badge badge-ai">0 items</span>
+            <div>
+              <h3 id="allergiesTitle" class="card-title">
+                <span class="card-icon" aria-hidden="true">⚠️</span> Allergies &amp; Adverse Reactions
+              </h3>
+              <p class="card-desc">Known allergies or adverse reactions documented in the patient-provided information or medical record.</p>
+            </div>
+            <span id="allergyCountBadge" class="badge badge-count">0 items</span>
           </div>
-          <div id="allergiesDisplay" class="item-list"></div>
+          <div class="table-responsive">
+            <table class="clinical-table" id="allergiesTable">
+              <thead>
+                <tr>
+                  <th>Allergen / Sensitivity</th>
+                  <th>Documented Reaction</th>
+                  <th>Source</th>
+                  <th>Confidence</th>
+                  <th>Verification</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="allergiesDisplay"></tbody>
+            </table>
+          </div>
         </section>
 
-        <!-- 4. Diagnostic Lab Results with Strict Source-Grounded Reference Ranges -->
-        <section class="card" aria-labelledby="labsTitle">
+        <!-- Laboratory Results Card -->
+        <section class="card dashboard-card-section" id="labsSection" aria-labelledby="labsTitle">
           <div class="card-header">
-            <h3 id="labsTitle" class="card-title">🔬 Diagnostic Test Results & Findings</h3>
-            <span id="labsCountBadge" class="badge badge-ai">0 items</span>
+            <div>
+              <h3 id="labsTitle" class="card-title">
+                <span class="card-icon" aria-hidden="true">🔬</span> Laboratory Results
+              </h3>
+              <p class="card-desc">Laboratory measurements are classified only when the source document provides a reference range. MedLens does not invent reference ranges.</p>
+            </div>
+            <span id="labsCountBadge" class="badge badge-count">0 items</span>
           </div>
-          <div id="labsDisplay" class="item-list"></div>
+          
+          <div class="responsible-ai-banner">
+            <span>🛡️</span>
+            <span><strong>Responsible AI Standard:</strong> Diagnostic tests are classified against source-stated ranges only. When omitted by source, status is declared as "Reference range not provided".</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="clinical-table" id="labsTable">
+              <thead>
+                <tr>
+                  <th>Diagnostic Test</th>
+                  <th>Result</th>
+                  <th>Unit</th>
+                  <th>Reference Range</th>
+                  <th>Clinical Status</th>
+                  <th>Confidence</th>
+                  <th style="text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="labsDisplay"></tbody>
+            </table>
+          </div>
         </section>
 
-        <!-- 5. Source-Document Instructions (Non-prescriptive) -->
-        <section class="card" aria-labelledby="instructionsTitle">
+        <!-- Source-Document Instructions Card -->
+        <section class="card dashboard-card-section" id="instructionsSection" aria-labelledby="instructionsTitle">
           <div class="card-header">
-            <h3 id="instructionsTitle" class="card-title">📋 Source-Document Instructions</h3>
-            <span id="stepsCountBadge" class="badge badge-ai">0 items</span>
+            <div>
+              <h3 id="instructionsTitle" class="card-title">
+                <span class="card-icon" aria-hidden="true">📋</span> Source-Document Instructions
+              </h3>
+              <p class="card-desc">Non-prescriptive instructions, follow-ups, and dietary recommendations extracted directly from the record.</p>
+            </div>
+            <span id="stepsCountBadge" class="badge badge-count">0 items</span>
           </div>
-          <div id="stepsDisplay" class="item-list"></div>
+          <div id="stepsDisplay" class="steps-list"></div>
         </section>
 
       </div>
@@ -1045,15 +1734,29 @@
   <footer role="contentinfo">
     <div class="safety-notice">
       <span>⚕️</span>
-      <span><strong>Clinical Safety & Privacy Notice:</strong> MedLens is an assistive record organization and review tool. It does not provide diagnoses or treatment directives. All processing is strictly local to your browser; no patient data is transmitted to external servers.</span>
+      <span><strong>Clinical Safety &amp; Privacy Notice:</strong> MedLens is an assistive record organization and review tool. It does not provide diagnoses or treatment directives. All processing is strictly local to your browser; no patient data is transmitted to external servers.</span>
     </div>
   </footer>
 
-  <!-- Human-in-the-Loop Field Edit Modal (Feature 9) -->
+  <!-- Modal 1: Clinical Source Provenance & Audit Inspector -->
+  <div class="modal-overlay" id="provenanceModal" role="dialog" aria-modal="true" aria-labelledby="provenanceModalTitle">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title" id="provenanceModalTitle">📌 Clinical Source Provenance</h3>
+        <button class="btn btn-xs" onclick="closeProvenanceModal()" aria-label="Close dialog">✕</button>
+      </div>
+      <div id="provenanceModalContent"></div>
+      <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
+        <button type="button" class="btn" onclick="closeProvenanceModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal 2: Human-in-the-Loop Field Edit Modal -->
   <div class="modal-overlay" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
     <div class="modal-container">
       <div class="modal-header">
-        <h3 class="modal-title" id="editModalTitle">✏️ Review & Edit Extracted Field</h3>
+        <h3 class="modal-title" id="editModalTitle">✏️ Review &amp; Edit Extracted Field</h3>
         <button class="btn btn-xs" onclick="closeEditModal()" aria-label="Close dialog">✕</button>
       </div>
       <form id="editFieldForm" onsubmit="saveFieldEdit(event)">
@@ -1077,7 +1780,7 @@
 
         <div class="form-group">
           <label>Original Source Document Snippet</label>
-          <div id="editFieldSourceText" class="item-source-quote" style="padding: 0.5rem 0.75rem;"></div>
+          <div id="editFieldSourceText" class="item-source-quote" style="padding: 0.5rem 0.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: monospace; font-size: 0.82rem;"></div>
         </div>
 
         <div class="form-group">
@@ -1091,13 +1794,13 @@
 
         <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
           <button type="button" class="btn" onclick="closeEditModal()">Cancel</button>
-          <button type="submit" class="btn btn-primary">✓ Save & Verify Field</button>
+          <button type="submit" class="btn btn-primary">✓ Save &amp; Verify Field</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Live 25-Test Executable Test Suite Modal (Feature 17) -->
+  <!-- Modal 3: Automated Test Suite Modal -->
   <div class="modal-overlay" id="testModal" role="dialog" aria-modal="true" aria-labelledby="testModalTitle">
     <div class="modal-container" style="max-width: 760px;">
       <div class="modal-header">
@@ -1105,7 +1808,7 @@
         <button class="btn btn-xs" onclick="closeTestModal()" aria-label="Close test modal">✕</button>
       </div>
       
-      <div id="testSuiteSummary" class="test-suite-summary">
+      <div id="testSuiteSummary" class="test-suite-summary" style="background: var(--bg-surface-elevated); padding: 0.8rem; border-radius: var(--radius-sm); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
         <span>Ready to execute 35 automated test specifications...</span>
         <button class="btn btn-xs btn-primary" onclick="runInBrowserTests()">▶ Run All Tests</button>
       </div>
@@ -1122,7 +1825,7 @@
     </div>
   </div>
 
-  <!-- File Upload Graceful Handling Dialog (Feature 3) -->
+  <!-- Modal 4: Clinical Document Ingestion Upload Modal -->
   <div class="modal-overlay" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
     <div class="modal-container">
       <div class="modal-header">
@@ -1130,19 +1833,19 @@
         <button class="btn btn-xs" onclick="closeUploadModal()" aria-label="Close dialog">✕</button>
       </div>
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
-        Upload medical records or notes (.txt, .json, .csv, .md) for instant offline extraction:
+        Upload medical records or notes (.txt, .json, .csv, .md, .pdf, .png, .jpg) for instant offline extraction:
       </p>
       
       <div class="form-group">
         <input type="file" id="fileInput" accept=".txt,.json,.csv,.md,.pdf,.png,.jpg" onchange="handleFileSelected(event)" style="display: none;">
-        <div onclick="document.getElementById('fileInput').click()" style="border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: var(--transition);">
+        <div onclick="document.getElementById('fileInput').click()" style="border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: var(--transition); background: var(--bg-surface-elevated);">
           <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">📄</div>
           <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;">Click to browse files</div>
-          <div style="font-size: 0.75rem; color: var(--text-subtle);">Direct text ingestion: .txt, .json, .csv, .md</div>
+          <div style="font-size: 0.75rem; color: var(--text-subtle);">Direct text, PDF text layers, and local OCR images (Max 10MB)</div>
         </div>
       </div>
 
-      <div id="fileNotice" style="font-size: 0.8rem; color: #93c5fd; background: rgba(59, 130, 246, 0.1); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid rgba(59, 130, 246, 0.25); margin-top: 0.5rem; display: none;"></div>
+      <div id="fileNotice" style="font-size: 0.8rem; color: var(--accent-blue); background: var(--accent-blue-subtle); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid rgba(59, 130, 246, 0.25); margin-top: 0.5rem; display: none;"></div>
 
       <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
         <button type="button" class="btn" onclick="closeUploadModal()">Close</button>
@@ -1150,7 +1853,7 @@
     </div>
   </div>
 
-    <!-- Transcript Review Modal (PDF & OCR Pre-Analysis Inspection) -->
+  <!-- Modal 5: Transcript Review Modal -->
   <div class="modal-overlay" id="transcriptReviewModal" role="dialog" aria-modal="true" aria-labelledby="transcriptReviewTitle">
     <div class="modal-container" style="max-width: 650px;">
       <div class="modal-header">
@@ -1158,27 +1861,27 @@
         <button class="btn btn-xs" onclick="closeTranscriptReviewModal()" aria-label="Close dialog">✕</button>
       </div>
       <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
-        <span id="transcriptSourceBadge" class="badge badge-ai">OCR / PDF Extracted</span>
+        <span id="transcriptSourceBadge" class="badge badge-source">OCR / PDF Extracted</span>
         Inspect and edit the extracted text transcript below to ensure accuracy before clinical review:
       </div>
       <textarea id="transcriptEditText" class="medical-textarea" style="height: 250px; font-family: monospace; font-size: 0.85rem; margin-bottom: 1rem;"></textarea>
       <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
         <button type="button" class="btn" onclick="closeTranscriptReviewModal()">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="applyReviewedTranscript()">✓ Accept & Load into Editor</button>
+        <button type="button" class="btn btn-primary" onclick="applyReviewedTranscript()">✓ Accept &amp; Load into Editor</button>
       </div>
     </div>
   </div>
 
-  <!-- Patient History & SQLite Records Modal -->
+  <!-- Modal 6: Patient History & SQLite Records Modal -->
   <div class="modal-overlay" id="patientHistoryModal" role="dialog" aria-modal="true" aria-labelledby="patientHistoryTitle">
     <div class="modal-container" style="max-width: 750px;">
       <div class="modal-header">
-        <h3 class="modal-title" id="patientHistoryTitle">📁 Patient Records & Longitudinal History</h3>
+        <h3 class="modal-title" id="patientHistoryTitle">📁 Patient Records &amp; Longitudinal History</h3>
         <button class="btn btn-xs" onclick="closePatientHistoryModal()" aria-label="Close dialog">✕</button>
       </div>
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
         <span style="font-size: 0.8rem; color: var(--text-muted);">Stored records in SQLite persistent storage (`medlens.db`):</span>
-        <button class="btn btn-xs btn-primary" onclick="saveCurrentPatientRecord()">💾 Save Current Patient & Report</button>
+        <button class="btn btn-xs btn-primary" onclick="saveCurrentPatientRecord()">💾 Save Current Patient &amp; Report</button>
       </div>
       <div id="patientListContainer" style="max-height: 45vh; overflow-y: auto; margin-bottom: 1rem;">
         <div style="padding: 1rem; text-align: center; color: var(--text-subtle); font-size: 0.85rem;">Loading stored records...</div>
@@ -1189,14 +1892,14 @@
     </div>
   </div>
 
-  <!-- Longitudinal Report Comparison Modal -->
+  <!-- Modal 7: Longitudinal Report Comparison Modal -->
   <div class="modal-overlay" id="comparisonModal" role="dialog" aria-modal="true" aria-labelledby="comparisonTitle">
     <div class="modal-container" style="max-width: 850px;">
       <div class="modal-header">
         <h3 class="modal-title" id="comparisonTitle">📊 Longitudinal Report Comparison</h3>
         <button class="btn btn-xs" onclick="closeComparisonModal()" aria-label="Close dialog">✕</button>
       </div>
-      <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; font-size: 0.78rem; color: #93c5fd; margin-bottom: 1rem;">
+      <div style="background: var(--accent-blue-subtle); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; font-size: 0.78rem; color: var(--accent-blue); margin-bottom: 1rem;">
         <strong>Factual Clinical Comparison:</strong> MedLens compares documented differences between previous and current clinical records. MedLens does NOT provide clinical prognostic judgments or determine whether changes indicate medical improvement or deterioration.
       </div>
       <div id="comparisonContent" style="max-height: 50vh; overflow-y: auto;">
@@ -1214,8 +1917,10 @@
     <span id="toastMsg">Action completed successfully</span>
   </div>
 
+
   <!-- JavaScript Application Engine -->
   <script>
+
     /* ==========================================================================
        MODULE 1: SECURITY & DATA PROTECTION BOUNDARIES
        ========================================================================== */
@@ -1417,7 +2122,7 @@
       if (!text || text.trim().length === 0) return [];
       
       const sanitizedText = text.replace(/\.{2,}/g, ' ');
-      const lines = sanitizedText.split(/\r?\n|;|\.(?:\s+|$)/);
+      const lines = sanitizedText.split(/\r?\n|;|(?:\.\s+)/);
       const extracted = [];
       const seenDrugs = new Set();
 
@@ -1429,46 +2134,68 @@
         const trimmed = line.trim();
         if (!trimmed) continue;
 
-        // Skip lines that are purely allergy declarations
         if (/(?:allergic to|allergy to|allergies:?|sensitivity to)\s+/i.test(trimmed) && !/\b(start|take|continue|increase|decrease)\b/i.test(trimmed)) {
           continue;
         }
 
-        // Combo check e.g. "Montelukast 10mg + Levocetirizine 5mg"
         const comboMatch = trimmed.match(/([A-Z][a-z0-9]+(?:\s+\d+\s*mg)?\s*[\+\/]\s*[A-Z][a-z0-9]+(?:\s+\d+\s*mg)?)/i);
-        let drugNameFound = null;
-        let isCombo = false;
-
-        if (comboMatch) {
-          drugNameFound = comboMatch[0].trim();
-          isCombo = true;
-        } else {
-          for (let drug of DRUG_DATABASE) {
-            const regex = new RegExp("\\b" + drug + "\\b", "i");
-            if (regex.test(trimmed)) {
-              drugNameFound = drug;
-              break;
+        if (comboMatch && !trimmed.toLowerCase().includes('mm/hr')) {
+          const comboStr = comboMatch[0].trim();
+          if (!comboStr.includes('/') || comboMatch[0].includes(' + ')) {
+            const cleanKey = comboStr.toLowerCase();
+            if (!seenDrugs.has(cleanKey)) {
+              seenDrugs.add(cleanKey);
+              extracted.push({
+                id: 'med_' + Math.random().toString(36).substr(2, 9),
+                name: comboStr,
+                dosage: "Combination formulation",
+                frequency: "As prescribed",
+                confidence: "HIGH",
+                source: "Medical Report",
+                sourceText: trimmed,
+                verificationStatus: "Unverified",
+                auditLog: [`Extracted combo regimen: "${trimmed}"`]
+              });
+              continue;
             }
           }
         }
 
-        if (drugNameFound) {
-          // Strict rejection check: units, strings with '/', and strings < 3 chars
+        const foundInLine = [];
+        for (let drug of DRUG_DATABASE) {
+          const regex = new RegExp("\\b" + drug + "\\b", "gi");
+          let match;
+          while ((match = regex.exec(trimmed)) !== null) {
+            foundInLine.push({
+              name: drug,
+              index: match.index,
+              endIndex: match.index + match[0].length
+            });
+          }
+        }
+
+        foundInLine.sort((a, b) => a.index - b.index);
+
+        for (let i = 0; i < foundInLine.length; i++) {
+          const item = foundInLine[i];
+          const drugNameFound = item.name;
+
           if (
             drugNameFound.includes('/') ||
             drugNameFound.length < 3 ||
-            MedLensNormalizer.isUnit(drugNameFound)
+            MedLensNormalizer.isUnit(drugNameFound) ||
+            MedLensNormalizer.isAllergen(drugNameFound)
           ) {
             continue;
           }
 
-          // Security / Allergen check
-          if (MedLensNormalizer.isAllergen(drugNameFound)) {
-            continue;
-          }
+          const prevEnd = (i > 0) ? foundInLine[i - 1].endIndex : 0;
+          const nextStart = (i + 1 < foundInLine.length) ? foundInLine[i + 1].index : trimmed.length;
+          const preWindow = trimmed.substring(prevEnd, item.index);
+          const postWindow = trimmed.substring(item.endIndex, nextStart);
+          const fullDrugWindow = trimmed.substring(prevEnd, nextStart);
 
-          // Discontinued medication check (Feature 12: Source-Document Instructions)
-          if (stopKeywords.test(trimmed)) {
+          if (stopKeywords.test(fullDrugWindow) || (stopKeywords.test(trimmed) && foundInLine.length === 1)) {
             continue;
           }
 
@@ -1476,28 +2203,37 @@
           if (seenDrugs.has(cleanKey)) continue;
           seenDrugs.add(cleanKey);
 
-          // Dosage update detection e.g. "INCREASED to 1000mg", "INCREASE Lisinopril to 20mg"
           let dosage = null;
-          const doseUpdateMatch = trimmed.match(/(?:increase|increased|decrease|decreased|change|changed|switch|switched|escalate|escalated|adjust|adjusted|raise|raised)\s+.*?(?:from\s+\d+(?:,\d{3})*(?:\.\d+)?\s*(?:mg|mcg|g|ml|iu|units)?\s*)?to\s+(\d+(?:,\d{3})*(?:\.\d+)?\s*(?:mg|mcg|g|ml|iu|units?))/i);
-          
+          const doseUpdateMatch = fullDrugWindow.match(/(?:increase|increased|decrease|decreased|change|changed|switch|switched|escalate|escalated|adjust|adjusted|raise|raised)\s+.*?(?:from\s+\d+(?:,\d{3})*(?:\.\d+)?\s*(?:mg|mcg|g|ml|iu|units)?\s*)?to\s+(\d+(?:,\d{3})*(?:\.\d+)?\s*(?:mg|mcg|g|ml|iu|units?))/i);
           if (doseUpdateMatch) {
             dosage = doseUpdateMatch[1];
           } else {
-            const toMatch = trimmed.match(/\bto\s+(\d+(?:,\d{3})*(?:\.\d+)?\s*(?:mg|mcg|g|ml|iu|units?))/i);
-            if (toMatch && /(?:increase|decrease|change|switch|escalate)/i.test(trimmed)) {
+            const toMatch = fullDrugWindow.match(/\bto\s+(\d+(?:,\d{3})*(?:\.\d+)?\s*(?:mg|mcg|g|ml|iu|units?))/i);
+            if (toMatch && /(?:increase|decrease|change|switch|escalate)/i.test(fullDrugWindow)) {
               dosage = toMatch[1];
             } else {
-              const doseMatch = trimmed.match(doseRegex);
-              dosage = doseMatch ? doseMatch[0] : null;
+              const postDose = postWindow.match(doseRegex);
+              if (postDose) {
+                dosage = postDose[0];
+              } else {
+                const preDose = preWindow.match(doseRegex);
+                if (preDose) dosage = preDose[0];
+              }
             }
           }
 
-          const freqMatch = trimmed.match(freqRegex);
-          const frequency = freqMatch ? freqMatch[0] : null;
+          let frequency = null;
+          const postFreq = postWindow.match(freqRegex);
+          if (postFreq) {
+            frequency = postFreq[0];
+          } else {
+            const preFreq = preWindow.match(freqRegex);
+            if (preFreq) frequency = preFreq[0];
+          }
 
           let confidence = "LOW";
           if (dosage && frequency) confidence = "HIGH";
-          else if (dosage || frequency || isCombo) confidence = "MEDIUM";
+          else if (dosage || frequency) confidence = "MEDIUM";
 
           extracted.push({
             id: 'med_' + Math.random().toString(36).substr(2, 9),
@@ -1506,9 +2242,9 @@
             frequency: frequency || "Frequency not specified in source",
             confidence: confidence,
             source: "Medical Report",
-            sourceText: trimmed,
-            verificationStatus: "Unverified", // "Unverified" | "Human Verified" | "Edited"
-            auditLog: [`Extracted from report line: "${trimmed}"`]
+            sourceText: fullDrugWindow.trim() || trimmed,
+            verificationStatus: "Unverified",
+            auditLog: [`Extracted from report text: "${fullDrugWindow.trim() || trimmed}"`]
           });
         }
       }
@@ -2117,7 +2853,6 @@
       const p = appState.patientProfile;
       const d = appState.parsedData;
 
-      // 1. Completeness Score (0 - 100%)
       let comp = 0;
       if (p.name && p.name !== "Not specified") comp += 20;
       if (p.age && p.sex) comp += 15;
@@ -2127,11 +2862,13 @@
       if (d.labResults.length > 0) comp += 15;
 
       appState.verificationMetrics.completeness = comp;
-      document.getElementById('metricCompleteness').textContent = comp;
-      document.getElementById('metricCompletenessDetail').textContent = 
-        comp >= 80 ? "Comprehensive record" : comp >= 50 ? "Partially documented" : "Sparse documentation";
+      const compEl = document.getElementById('metricCompleteness');
+      if (compEl) compEl.textContent = comp;
+      const compDetailEl = document.getElementById('metricCompletenessDetail');
+      if (compDetailEl) {
+        compDetailEl.textContent = comp >= 80 ? "Comprehensive record" : comp >= 50 ? "Partially documented" : "Sparse documentation";
+      }
 
-      // 2. Confidence Counts
       let high = 0, med = 0, low = 0;
       const allItems = [...d.medications, ...d.allergies, ...d.labResults, ...d.nextSteps];
       allItems.forEach(x => {
@@ -2144,16 +2881,29 @@
       appState.verificationMetrics.medConf = med;
       appState.verificationMetrics.lowConf = low;
 
-      document.getElementById('metricHighConf').textContent = high;
-      document.getElementById('metricConfBreakdown').textContent = `${med} Medium • ${low} Low/Review`;
+      const highEl = document.getElementById('metricHighConf');
+      if (highEl) highEl.textContent = high;
+      const confBreakdownEl = document.getElementById('metricConfBreakdown');
+      if (confBreakdownEl) confBreakdownEl.textContent = `${med} Medium • ${low} Low/Review`;
 
-      // 3. Human Verified Fields
       const verified = allItems.filter(x => x.verificationStatus && x.verificationStatus.includes("Verified")).length;
       appState.verificationMetrics.totalFields = allItems.length;
       appState.verificationMetrics.verifiedFields = verified;
 
-      document.getElementById('metricVerifiedCount').textContent = verified;
-      document.getElementById('metricTotalFields').textContent = allItems.length;
+      const verifiedEl = document.getElementById('metricVerifiedCount');
+      if (verifiedEl) verifiedEl.textContent = verified;
+      const totalFieldsEl = document.getElementById('metricTotalFields');
+      if (totalFieldsEl) totalFieldsEl.textContent = allItems.length;
+
+      // Update KPI Top Cards
+      const kpiName = document.getElementById('kpiPatientName');
+      if (kpiName) kpiName.textContent = p.name || 'John Doe';
+      const kpiDemo = document.getElementById('kpiPatientDemographics');
+      if (kpiDemo) kpiDemo.textContent = `${p.age || '45'} yrs • ${p.sex || 'Male'}`;
+      const kpiTotalBadge = document.getElementById('metricTotalFieldsBadge');
+      if (kpiTotalBadge) kpiTotalBadge.textContent = `${allItems.length} fields extracted`;
+      const kpiReviewBadge = document.getElementById('metricNeedsReviewBadge');
+      if (kpiReviewBadge) kpiReviewBadge.textContent = `${allItems.length - verified} need review`;
     }
 
     /* ==========================================================================
@@ -2233,46 +2983,53 @@
     function renderConflictBanner() {
       const banner = document.getElementById('conflictBanner');
       const list = document.getElementById('conflictList');
+      const cleanNotice = document.getElementById('noConflictNotice');
 
       const activeConflicts = appState.conflicts.filter(c => c.status !== 'RESOLVED_INTAKE' && c.status !== 'RESOLVED_REPORT');
 
       if (activeConflicts.length > 0) {
-        banner.classList.remove('hidden');
-        list.innerHTML = activeConflicts.map(c => `
-          <div class="conflict-item">
-            <div>
-              <strong>${MedLensSecurity.escapeHtml(c.type)}:</strong> ${MedLensSecurity.escapeHtml(c.message)}
+        if (banner) banner.classList.remove('hidden');
+        if (cleanNotice) cleanNotice.classList.add('hidden');
+        if (list) {
+          list.innerHTML = activeConflicts.map(c => `
+            <div class="conflict-item">
+              <div>
+                <span class="badge badge-conflict">${MedLensSecurity.escapeHtml(c.type)}</span>
+                <p style="margin-top: 0.3rem; font-size: 0.85rem; color: var(--text-main); font-weight: 500;">${MedLensSecurity.escapeHtml(c.message)}</p>
+              </div>
+              <div class="conflict-actions">
+                <button class="btn btn-xs" onclick="resolveConflict('${c.id}', 'RESOLVED_INTAKE')">Keep Intake</button>
+                <button class="btn btn-xs" onclick="resolveConflict('${c.id}', 'RESOLVED_REPORT')">Keep Report</button>
+                <button class="btn btn-xs" onclick="resolveConflict('${c.id}', 'ACKNOWLEDGED')">Acknowledge</button>
+              </div>
             </div>
-            <div class="conflict-actions">
-              <button class="btn btn-xs" onclick="resolveConflict('${c.id}', 'RESOLVED_INTAKE')">Keep Intake</button>
-              <button class="btn btn-xs" onclick="resolveConflict('${c.id}', 'RESOLVED_REPORT')">Keep Report</button>
-              <button class="btn btn-xs" onclick="resolveConflict('${c.id}', 'ACKNOWLEDGED')">Acknowledge</button>
-            </div>
-          </div>
-        `).join('');
+          `).join('');
+        }
       } else {
-        banner.classList.add('hidden');
+        if (banner) banner.classList.add('hidden');
+        if (cleanNotice) cleanNotice.classList.remove('hidden');
       }
     }
 
     function renderClarificationSection() {
       const list = document.getElementById('clarificationList');
+      if (!list) return;
       if (appState.clarifications.length === 0) {
-        list.innerHTML = `<div style="font-size: 0.8rem; color: var(--text-muted); font-style: italic;">No critical missing or conflicting data flagged at this time.</div>`;
+        list.innerHTML = `<div class="empty-state-notice">✓ No critical missing or conflicting data flagged at this time. All assessed fields meet clinical safety criteria.</div>`;
         return;
       }
 
       list.innerHTML = appState.clarifications.map(q => `
-        <div class="clarification-item">
-          <div class="clarification-text">
-            <span style="font-size: 0.72rem; font-weight: 700; color: #a5b4fc; text-transform: uppercase;">[${MedLensSecurity.escapeHtml(q.category)}]</span><br>
-            ${MedLensSecurity.escapeHtml(q.question)}
+        <div class="clarification-card">
+          <div class="clarification-main">
+            <div class="clarification-tag">[${MedLensSecurity.escapeHtml(q.category)}]</div>
+            <div class="clarification-question">${MedLensSecurity.escapeHtml(q.question)}</div>
           </div>
           <div class="clarification-actions">
             <span class="badge ${q.status === 'RESOLVED' ? 'badge-verified' : q.status === 'IGNORED' ? 'badge-low' : 'badge-medium'}">
-              ${q.status}
+              ${q.status === 'RESOLVED' ? '✓ Resolved' : q.status === 'IGNORED' ? '✕ Dismissed' : q.status === 'NOT_AVAILABLE' ? 'N/A' : 'Pending Review'}
             </span>
-            <button class="btn btn-xs" onclick="setClarificationStatus('${q.id}', 'RESOLVED')" title="Mark resolved">✓</button>
+            <button class="btn btn-xs btn-primary" onclick="setClarificationStatus('${q.id}', 'RESOLVED')" title="Confirm / Mark resolved">✓ Confirm</button>
             <button class="btn btn-xs" onclick="setClarificationStatus('${q.id}', 'NOT_AVAILABLE')" title="Not available in record">N/A</button>
             <button class="btn btn-xs" onclick="setClarificationStatus('${q.id}', 'IGNORED')" title="Dismiss question">✕</button>
           </div>
@@ -2302,22 +3059,39 @@
 
     function renderProfileDisplay() {
       const container = document.getElementById('profileDisplay');
+      if (!container) return;
       const p = appState.patientProfile;
 
-      const nameVal = appState.privacyMode ? '<span class="redact-val">[REDACTED NAME]</span>' : MedLensSecurity.escapeHtml(p.name);
+      const nameVal = appState.privacyMode ? '<span class="redact-val">[REDACTED NAME]</span>' : MedLensSecurity.escapeHtml(p.name || 'Not specified');
       const ageVal = appState.privacyMode ? '<span class="redact-val">[REDACTED AGE]</span>' : (p.age ? `${p.age} years` : "Not specified");
 
       container.innerHTML = `
-        <div class="item-card">
-          <div class="item-header">
-            <div class="item-title-group">
-              <span class="item-title">${nameVal} (${ageVal}, ${MedLensSecurity.escapeHtml(p.sex)})</span>
-            </div>
-            <span class="badge badge-user">👤 User Provided</span>
+        <div class="patient-profile-grid">
+          <div class="profile-field">
+            <span class="profile-field-label">PATIENT NAME</span>
+            <strong class="profile-field-value">${nameVal}</strong>
+            <span class="badge badge-user" style="margin-top: 0.35rem;">User Provided</span>
           </div>
-          <div style="font-size: 0.83rem; color: var(--text-muted);">
-            <strong>Symptoms:</strong> ${MedLensSecurity.escapeHtml(p.symptoms || "None reported")}<br>
-            <strong>Existing Conditions:</strong> ${MedLensSecurity.escapeHtml(p.conditions || "None reported")}
+          <div class="profile-field">
+            <span class="profile-field-label">AGE / SEX</span>
+            <strong class="profile-field-value">${ageVal} • ${MedLensSecurity.escapeHtml(p.sex || 'Unspecified')}</strong>
+            <span class="badge badge-user" style="margin-top: 0.35rem;">User Provided</span>
+          </div>
+          <div class="profile-field" style="grid-column: 1 / -1;">
+            <span class="profile-field-label">REPORTED SYMPTOMS</span>
+            <div class="profile-field-desc">${MedLensSecurity.escapeHtml(p.symptoms || "No baseline symptoms reported")}</div>
+          </div>
+          <div class="profile-field" style="grid-column: 1 / -1;">
+            <span class="profile-field-label">EXISTING CONDITIONS / HISTORY</span>
+            <div class="profile-field-desc">${MedLensSecurity.escapeHtml(p.conditions || "No prior conditions reported")}</div>
+          </div>
+          <div class="profile-field">
+            <span class="profile-field-label">INTAKE ALLERGIES</span>
+            <div class="profile-field-desc">${MedLensSecurity.escapeHtml(p.allergies || "No Known Drug Allergies")}</div>
+          </div>
+          <div class="profile-field">
+            <span class="profile-field-label">INTAKE MEDICATIONS</span>
+            <div class="profile-field-desc">${MedLensSecurity.escapeHtml(p.medications || "No active medications reported")}</div>
           </div>
         </div>
       `;
@@ -2328,42 +3102,38 @@
       const badge = document.getElementById('medCountBadge');
       const meds = appState.parsedData.medications;
 
-      badge.textContent = `${meds.length} items`;
+      if (badge) badge.textContent = `${meds.length} items`;
+      if (!container) return;
 
       if (meds.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text-subtle); font-size: 0.85rem;">No active medications extracted from source text.</div>`;
+        container.innerHTML = `<tr><td colspan="7" class="table-empty-cell">No active medications extracted from document.</td></tr>`;
         return;
       }
 
       container.innerHTML = meds.map(m => {
         const isVerified = m.verificationStatus && m.verificationStatus.includes("Verified");
-        const statusBadge = isVerified ? '<span class="badge badge-verified">✓ Human Verified</span>' : '<span class="badge badge-unverified">Unverified</span>';
+        const statusBadge = isVerified 
+          ? '<span class="badge badge-verified">✓ Verified</span>' 
+          : '<span class="badge badge-unverified">Needs Review</span>';
 
         return `
-          <div class="item-card">
-            <div class="item-header">
-              <div class="item-title-group">
-                <span class="item-title">💊 ${MedLensSecurity.escapeHtml(m.name)}</span>
-                <span class="item-normalized">${MedLensSecurity.escapeHtml(m.name)}</span>
+          <tr>
+            <td>
+              <div class="entity-name">
+                <strong>${MedLensSecurity.escapeHtml(m.name)}</strong>
               </div>
-              <div class="badges-wrapper">
-                <span class="badge badge-ai">Medical Report</span>
-                ${renderConfidenceBadge(m.confidence)}
-                ${statusBadge}
-                <div class="item-controls">
-                  <button class="btn btn-xs" onclick="openEditModal('med', '${m.id}')" title="Edit field">Edit</button>
-                  <button class="btn btn-xs" onclick="verifyField('med', '${m.id}')" title="Verify field">✓ Verify</button>
-                </div>
-              </div>
-            </div>
-            <div style="font-size: 0.83rem; color: var(--text-muted);">
-              <strong>Dosage:</strong> ${MedLensSecurity.escapeHtml(m.dosage)} &nbsp;|&nbsp; 
-              <strong>Frequency:</strong> ${MedLensSecurity.escapeHtml(m.frequency)}
-            </div>
-            <div class="item-source-quote">
-              Source snippet: "${MedLensSecurity.escapeHtml(m.sourceText)}"
-            </div>
-          </div>
+            </td>
+            <td><span class="cell-val">${MedLensSecurity.escapeHtml(m.dosage || 'Not specified')}</span></td>
+            <td><span class="cell-val">${MedLensSecurity.escapeHtml(m.frequency || 'Not specified')}</span></td>
+            <td><span class="badge badge-source">${MedLensSecurity.escapeHtml(m.source || 'Medical Report')}</span></td>
+            <td>${renderConfidenceBadge(m.confidence)}</td>
+            <td>${statusBadge}</td>
+            <td style="text-align: right; white-space: nowrap;">
+              <button class="btn btn-xs" onclick="openProvenanceModal('med', '${m.id}')" title="View clinical source text & audit trail">🔍 Source</button>
+              <button class="btn btn-xs" onclick="openEditModal('med', '${m.id}')" title="Edit field">Edit</button>
+              <button class="btn btn-xs ${isVerified ? '' : 'btn-primary'}" onclick="verifyField('med', '${m.id}')" title="Verify field">${isVerified ? '✓' : 'Verify'}</button>
+            </td>
+          </tr>
         `;
       }).join('');
     }
@@ -2373,39 +3143,38 @@
       const badge = document.getElementById('allergyCountBadge');
       const allergies = appState.parsedData.allergies;
 
-      badge.textContent = `${allergies.length} items`;
+      if (badge) badge.textContent = `${allergies.length} items`;
+      if (!container) return;
 
       if (allergies.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text-subtle); font-size: 0.85rem;">No allergies recorded or extracted.</div>`;
+        container.innerHTML = `<tr><td colspan="6" class="table-empty-cell">No allergies recorded or extracted.</td></tr>`;
         return;
       }
 
       container.innerHTML = allergies.map(a => {
         const isNKDA = a.name.includes("No Known Drug Allergies");
         const isVerified = a.verificationStatus && a.verificationStatus.includes("Verified");
+        const icon = isNKDA ? '🛡️' : '⚠️';
+        const reactionText = a.reaction || (isNKDA ? "No adverse drug reactions declared" : "Documented clinical sensitivity");
 
         return `
-          <div class="item-card">
-            <div class="item-header">
-              <div class="item-title-group">
-                <span class="item-title" style="color: ${isNKDA ? '#34d399' : '#fca5a5'};">
-                  ⚠️ ${MedLensSecurity.escapeHtml(a.name)}
-                </span>
+          <tr>
+            <td>
+              <div class="entity-name">
+                <span aria-hidden="true">${icon}</span>
+                <strong style="${isNKDA ? 'color: var(--status-success);' : 'color: var(--status-danger);'}">${MedLensSecurity.escapeHtml(a.name)}</strong>
               </div>
-              <div class="badges-wrapper">
-                <span class="badge ${a.source.includes('User') ? 'badge-user' : 'badge-ai'}">${MedLensSecurity.escapeHtml(a.source)}</span>
-                ${renderConfidenceBadge(a.confidence)}
-                ${isVerified ? '<span class="badge badge-verified">✓ Verified</span>' : '<span class="badge badge-unverified">Unverified</span>'}
-                <div class="item-controls">
-                  <button class="btn btn-xs" onclick="openEditModal('alg', '${a.id}')" title="Edit allergy">Edit</button>
-                  <button class="btn btn-xs" onclick="verifyField('alg', '${a.id}')" title="Verify allergy">✓ Verify</button>
-                </div>
-              </div>
-            </div>
-            <div class="item-source-quote">
-              Source: "${MedLensSecurity.escapeHtml(a.sourceText)}"
-            </div>
-          </div>
+            </td>
+            <td><span class="cell-val">${MedLensSecurity.escapeHtml(reactionText)}</span></td>
+            <td><span class="badge badge-source">${MedLensSecurity.escapeHtml(a.source)}</span></td>
+            <td>${renderConfidenceBadge(a.confidence)}</td>
+            <td>${isVerified ? '<span class="badge badge-verified">✓ Verified</span>' : '<span class="badge badge-unverified">Needs Review</span>'}</td>
+            <td style="text-align: right; white-space: nowrap;">
+              <button class="btn btn-xs" onclick="openProvenanceModal('alg', '${a.id}')" title="View clinical source provenance">🔍 Source</button>
+              <button class="btn btn-xs" onclick="openEditModal('alg', '${a.id}')" title="Edit allergy">Edit</button>
+              <button class="btn btn-xs ${isVerified ? '' : 'btn-primary'}" onclick="verifyField('alg', '${a.id}')" title="Verify allergy">${isVerified ? '✓' : 'Verify'}</button>
+            </td>
+          </tr>
         `;
       }).join('');
     }
@@ -2415,45 +3184,48 @@
       const badge = document.getElementById('labsCountBadge');
       const labs = appState.parsedData.labResults;
 
-      badge.textContent = `${labs.length} items`;
+      if (badge) badge.textContent = `${labs.length} items`;
+      if (!container) return;
 
       if (labs.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text-subtle); font-size: 0.85rem;">No diagnostic lab values found in report text.</div>`;
+        container.innerHTML = `<tr><td colspan="7" class="table-empty-cell">No diagnostic lab values found in report text.</td></tr>`;
         return;
       }
 
       container.innerHTML = labs.map(l => {
-        const valDisplay = appState.privacyMode ? '<span class="redact-val">[REDACTED]</span>' : `${MedLensSecurity.escapeHtml(l.value)} ${MedLensSecurity.escapeHtml(l.unit)}`;
+        const valDisplay = appState.privacyMode ? '<span class="redact-val">[REDACTED]</span>' : `${MedLensSecurity.escapeHtml(l.value)}`;
         const isAbnormal = l.status.includes("ABNORMAL");
-        const statusBadgeClass = isAbnormal ? "status-abnormal" : l.isSourceRangeProvided ? "status-normal" : "status-unassessed";
+        let statusBadgeClass = "status-normal";
+        let statusLabel = l.status;
+
+        if (isAbnormal) {
+          statusBadgeClass = "status-abnormal";
+        } else if (!l.isSourceRangeProvided || l.status === "Source Range Not Provided") {
+          statusBadgeClass = "status-unassessed";
+          statusLabel = "Reference range not provided";
+        }
+
         const isVerified = l.verificationStatus && l.verificationStatus.includes("Verified");
 
         return `
-          <div class="item-card">
-            <div class="item-header">
-              <div class="item-title-group">
-                <span class="item-title">🔬 ${MedLensSecurity.escapeHtml(l.testName)}: ${valDisplay}</span>
-                <span class="item-normalized">${MedLensSecurity.escapeHtml(l.normalizedName)}</span>
+          <tr>
+            <td>
+              <div class="entity-name">
+                <strong>${MedLensSecurity.escapeHtml(l.testName)}</strong>
+                ${l.normalizedName && l.normalizedName !== l.testName ? `<span class="item-normalized">${MedLensSecurity.escapeHtml(l.normalizedName)}</span>` : ''}
               </div>
-              <div class="badges-wrapper">
-                <span class="badge ${statusBadgeClass}">${MedLensSecurity.escapeHtml(l.status)}</span>
-                <span class="badge badge-ai">Report</span>
-                ${renderConfidenceBadge(l.confidence)}
-                ${isVerified ? '<span class="badge badge-verified">✓ Verified</span>' : '<span class="badge badge-unverified">Unverified</span>'}
-                <div class="item-controls">
-                  <button class="btn btn-xs" onclick="openEditModal('lab', '${l.id}')" title="Edit result">Edit</button>
-                  <button class="btn btn-xs" onclick="verifyField('lab', '${l.id}')" title="Verify result">✓ Verify</button>
-                </div>
-              </div>
-            </div>
-            <div style="font-size: 0.82rem; color: var(--text-muted);">
-              <strong>Source Reference Range:</strong> ${MedLensSecurity.escapeHtml(l.refRange)}
-              ${l.assessmentNote ? `<br><span style="color: #cbd5e1; font-size: 0.76rem;">Assessment note: ${MedLensSecurity.escapeHtml(l.assessmentNote)}</span>` : ''}
-            </div>
-            <div class="item-source-quote">
-              Source quote: "${MedLensSecurity.escapeHtml(l.sourceText)}"
-            </div>
-          </div>
+            </td>
+            <td><strong class="cell-val ${isAbnormal ? 'cell-abnormal' : ''}">${valDisplay}</strong></td>
+            <td><span class="cell-val">${MedLensSecurity.escapeHtml(l.unit || 'units')}</span></td>
+            <td><span class="cell-val">${MedLensSecurity.escapeHtml(l.refRange || 'Not provided in source')}</span></td>
+            <td><span class="badge ${statusBadgeClass}">${MedLensSecurity.escapeHtml(statusLabel)}</span></td>
+            <td>${renderConfidenceBadge(l.confidence)}</td>
+            <td style="text-align: right; white-space: nowrap;">
+              <button class="btn btn-xs" onclick="openProvenanceModal('lab', '${l.id}')" title="View clinical provenance">🔍 Source</button>
+              <button class="btn btn-xs" onclick="openEditModal('lab', '${l.id}')" title="Edit result">Edit</button>
+              <button class="btn btn-xs ${isVerified ? '' : 'btn-primary'}" onclick="verifyField('lab', '${l.id}')" title="Verify result">${isVerified ? '✓' : 'Verify'}</button>
+            </td>
+          </tr>
         `;
       }).join('');
     }
@@ -2463,29 +3235,33 @@
       const badge = document.getElementById('stepsCountBadge');
       const steps = appState.parsedData.nextSteps;
 
-      badge.textContent = `${steps.length} items`;
+      if (badge) badge.textContent = `${steps.length} items`;
+      if (!container) return;
 
       if (steps.length === 0) {
-        container.innerHTML = `<div style="text-align: center; padding: 1.5rem; color: var(--text-subtle); font-size: 0.85rem;">No source instructions documented.</div>`;
+        container.innerHTML = `<div class="empty-state-notice">No source-document instructions or follow-up orders extracted.</div>`;
         return;
       }
 
-      container.innerHTML = steps.map((s, idx) => `
-        <div class="item-card">
-          <div class="item-header">
-            <div class="item-title-group">
-              <span class="item-title">📌 ${idx + 1}. ${MedLensSecurity.escapeHtml(s.text)}</span>
+      container.innerHTML = steps.map((s, idx) => {
+        const isVerified = s.verificationStatus && s.verificationStatus.includes("Verified");
+
+        return `
+          <div class="step-card-row">
+            <div class="step-card-left">
+              <span class="step-card-index">${idx + 1}</span>
+              <span class="step-card-text">${MedLensSecurity.escapeHtml(s.text)}</span>
             </div>
-            <div class="badges-wrapper">
-              <span class="badge badge-ai">Source Document</span>
+            <div class="step-card-actions">
+              <span class="badge badge-source">Source Document</span>
               ${renderConfidenceBadge(s.confidence)}
-              <div class="item-controls">
-                <button class="btn btn-xs" onclick="verifyField('step', '${s.id}')">✓ Verify</button>
-              </div>
+              ${isVerified ? '<span class="badge badge-verified">✓ Verified</span>' : '<span class="badge badge-unverified">Needs Review</span>'}
+              <button class="btn btn-xs" onclick="openProvenanceModal('step', '${s.id}')" title="View provenance">🔍 Source</button>
+              <button class="btn btn-xs ${isVerified ? '' : 'btn-primary'}" onclick="verifyField('step', '${s.id}')">${isVerified ? '✓' : 'Verify'}</button>
             </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function renderConfidenceBadge(level) {
@@ -3912,6 +4688,161 @@ PLAN:
 
       container.innerHTML = html;
     }
+
+  
+    /* ==========================================================================
+       MODULE 19: CLINICAL DASHBOARD UI & THEME CONTROLS
+       ========================================================================== */
+    function initTheme() {
+      const saved = localStorage.getItem('medlens_theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+      updateThemeToggleUI(saved);
+    }
+
+    function toggleTheme() {
+      const current = document.documentElement.getAttribute('data-theme') || 'dark';
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('medlens_theme', next);
+      updateThemeToggleUI(next);
+      showToast(`Theme switched to ${next.toUpperCase()} mode`);
+    }
+
+    function updateThemeToggleUI(theme) {
+      const btn = document.getElementById('themeToggleBtn');
+      if (btn) {
+        btn.innerHTML = theme === 'light' ? '☀️ Light' : '🌙 Dark';
+        btn.setAttribute('aria-label', `Switch to ${theme === 'light' ? 'dark' : 'light'} mode`);
+      }
+    }
+
+    function switchDashboardTab(tabId) {
+      document.querySelectorAll('.nav-tab').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = document.getElementById('tab-' + tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+
+      const inputCol = document.getElementById('inputColumn');
+      const outputCol = document.getElementById('outputColumn');
+
+      if (tabId === 'overview') {
+        if (inputCol) inputCol.style.display = '';
+        if (outputCol) outputCol.style.display = '';
+        document.querySelectorAll('.dashboard-card-section').forEach(el => el.style.display = '');
+      } else if (tabId === 'patient') {
+        if (inputCol) inputCol.style.display = '';
+        if (outputCol) outputCol.style.display = 'none';
+        document.getElementById('intakeFormSection')?.scrollIntoView({ behavior: 'smooth' });
+      } else if (tabId === 'report') {
+        if (inputCol) inputCol.style.display = '';
+        if (outputCol) outputCol.style.display = 'none';
+        document.getElementById('reportInputSection')?.scrollIntoView({ behavior: 'smooth' });
+      } else if (tabId === 'medications') {
+        if (inputCol) inputCol.style.display = 'none';
+        if (outputCol) outputCol.style.display = '';
+        document.querySelectorAll('.dashboard-card-section').forEach(el => el.style.display = 'none');
+        document.getElementById('medicationsSection').style.display = '';
+      } else if (tabId === 'labs') {
+        if (inputCol) inputCol.style.display = 'none';
+        if (outputCol) outputCol.style.display = '';
+        document.querySelectorAll('.dashboard-card-section').forEach(el => el.style.display = 'none');
+        document.getElementById('labsSection').style.display = '';
+      } else if (tabId === 'review') {
+        if (inputCol) inputCol.style.display = 'none';
+        if (outputCol) outputCol.style.display = '';
+        document.querySelectorAll('.dashboard-card-section').forEach(el => el.style.display = 'none');
+        document.getElementById('conflictSectionContainer').style.display = '';
+        document.getElementById('clarificationSection').style.display = '';
+      }
+    }
+
+    function toggleExportMenu() {
+      const menu = document.getElementById('exportMenu');
+      const btn = document.getElementById('exportMenuBtn');
+      if (!menu) return;
+      const isOpen = menu.classList.contains('active');
+      if (isOpen) {
+        menu.classList.remove('active');
+        btn?.setAttribute('aria-expanded', 'false');
+      } else {
+        menu.classList.add('active');
+        btn?.setAttribute('aria-expanded', 'true');
+      }
+    }
+
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('exportDropdown');
+      if (dropdown && !dropdown.contains(e.target)) {
+        document.getElementById('exportMenu')?.classList.remove('active');
+        document.getElementById('exportMenuBtn')?.setAttribute('aria-expanded', 'false');
+      }
+    });
+
+    function dismissWelcomeBanner() {
+      const banner = document.getElementById('welcomeBanner');
+      if (banner) banner.classList.add('hidden');
+      localStorage.setItem('medlens_welcome_dismissed', 'true');
+    }
+
+    function initWelcomeBanner() {
+      const banner = document.getElementById('welcomeBanner');
+      if (!banner) return;
+      if (localStorage.getItem('medlens_welcome_dismissed') === 'true') {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function openProvenanceModal(itemType, itemId) {
+      let item = null;
+      if (itemType === 'med') item = appState.parsedData.medications.find(x => x.id === itemId);
+      else if (itemType === 'alg') item = appState.parsedData.allergies.find(x => x.id === itemId);
+      else if (itemType === 'lab') item = appState.parsedData.labResults.find(x => x.id === itemId);
+      else if (itemType === 'step') item = appState.parsedData.nextSteps.find(x => x.id === itemId);
+
+      if (!item) return;
+
+      const content = document.getElementById('provenanceModalContent');
+      content.innerHTML = `
+        <div style="margin-bottom: 1rem;">
+          <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Entity Name</div>
+          <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-main);">${MedLensSecurity.escapeHtml(item.name || item.testName || item.text)}</div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 1rem; font-size: 0.82rem;">
+          <div style="background: var(--bg-surface-elevated); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <span style="color: var(--text-subtle); display: block; font-size: 0.68rem; font-weight: 700;">EXTRACTION SOURCE</span>
+            <strong style="color: var(--text-main);">${MedLensSecurity.escapeHtml(item.source || 'Medical Report')}</strong>
+          </div>
+          <div style="background: var(--bg-surface-elevated); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <span style="color: var(--text-subtle); display: block; font-size: 0.68rem; font-weight: 700;">CONFIDENCE LEVEL</span>
+            <strong style="color: var(--text-main);">${MedLensSecurity.escapeHtml(item.confidence || 'HIGH')}</strong>
+          </div>
+        </div>
+        <div style="margin-bottom: 1rem;">
+          <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Original Source Snippet (Traceability)</div>
+          <div style="background: var(--bg-primary); border: 1px solid var(--border-color); border-left: 3px solid var(--accent-blue); padding: 0.75rem; border-radius: var(--radius-sm); font-size: 0.85rem; font-family: monospace; color: var(--text-main); line-height: 1.5;">
+            "${MedLensSecurity.escapeHtml(item.sourceText || 'Documented line in report')}"
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 0.72rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin-bottom: 0.25rem;">Verification Audit Trail</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); background: var(--bg-surface-elevated); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div>Status: <strong>${MedLensSecurity.escapeHtml(item.verificationStatus || 'Unverified')}</strong></div>
+            ${item.verifiedAt ? `<div>Timestamp: <strong>${item.verifiedAt}</strong></div>` : ''}
+            ${item.auditLog && item.auditLog.length > 0 ? `<div style="margin-top: 0.35rem; font-size: 0.75rem; color: var(--text-subtle);">${item.auditLog.map(l => MedLensSecurity.escapeHtml(l)).join('<br>')}</div>` : ''}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('provenanceModal').classList.add('active');
+    }
+
+    function closeProvenanceModal() {
+      document.getElementById('provenanceModal').classList.remove('active');
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      initWelcomeBanner();
+    });
 
   </script>
 </body>
