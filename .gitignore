@@ -1,0 +1,17 @@
+# Node modules
+node_modules/
+package-lock.json
+
+# Environment variables & secrets
+.env
+*.env
+
+# SQLite databases & logs
+*.db
+*.db-shm
+*.db-wal
+*.log
+
+# Operating system files
+.DS_Store
+Thumbs.db
