@@ -1279,7 +1279,8 @@
         "cxr": "Chest X-Ray", "chest x-ray": "Chest X-Ray", "x-ray": "Chest X-Ray",
         "sodium": "Serum Sodium", "na+": "Serum Sodium",
         "potassium": "Serum Potassium", "k+": "Serum Potassium",
-        "tsh": "TSH", "esr": "ESR", "crp": "C-Reactive Protein"
+        "tsh": "TSH", "esr": "ESR", "crp": "C-Reactive Protein",
+        "egfr": "eGFR", "estimated glomerular filtration rate": "eGFR", "gfr": "eGFR"
       },
 
       normalizeLabName(name) {
@@ -1332,28 +1333,28 @@
           return { status: "DOCUMENTED", isSourceProvided: true };
         }
 
-        // Check range format e.g. "13.5 - 17.5" or "13.5-17.5"
-        const rangeMatch = refRangeStr.match(/([0-9]+(?:\.[0-9]+)?)\s*[-–]\s*([0-9]+(?:\.[0-9]+)?)/);
+        // Check range format e.g. "13.5 - 17.5" or "13.5-17.5" or "4,000-11,000"
+        const rangeMatch = refRangeStr.match(/([0-9]+(?:,[0-9]+)*(?:\.[0-9]+)?)\s*[-–]\s*([0-9]+(?:,[0-9]+)*(?:\.[0-9]+)?)/);
         if (rangeMatch) {
-          const min = parseFloat(rangeMatch[1]);
-          const max = parseFloat(rangeMatch[2]);
+          const min = parseFloat(rangeMatch[1].replace(/,/g, ''));
+          const max = parseFloat(rangeMatch[2].replace(/,/g, ''));
           if (numVal < min) return { status: "ABNORMAL (LOW)", isSourceProvided: true };
           if (numVal > max) return { status: "ABNORMAL (HIGH)", isSourceProvided: true };
           return { status: "NORMAL", isSourceProvided: true };
         }
 
         // Check less than format e.g. "<200" or "< 100"
-        const ltMatch = refRangeStr.match(/<\s*([0-9]+(?:\.[0-9]+)?)/);
+        const ltMatch = refRangeStr.match(/<\s*([0-9]+(?:,[0-9]+)*(?:\.[0-9]+)?)/);
         if (ltMatch) {
-          const limit = parseFloat(ltMatch[1]);
+          const limit = parseFloat(ltMatch[1].replace(/,/g, ''));
           if (numVal > limit) return { status: "ABNORMAL (HIGH)", isSourceProvided: true };
           return { status: "NORMAL", isSourceProvided: true };
         }
 
-        // Check greater than format e.g. ">40"
-        const gtMatch = refRangeStr.match(/>\s*([0-9]+(?:\.[0-9]+)?)/);
+        // Check greater than format e.g. ">40" or ">90"
+        const gtMatch = refRangeStr.match(/>\s*([0-9]+(?:,[0-9]+)*(?:\.[0-9]+)?)/);
         if (gtMatch) {
-          const limit = parseFloat(gtMatch[1]);
+          const limit = parseFloat(gtMatch[1].replace(/,/g, ''));
           if (numVal < limit) return { status: "ABNORMAL (LOW)", isSourceProvided: true };
           return { status: "NORMAL", isSourceProvided: true };
         }
@@ -1732,6 +1733,11 @@
           continue;
         }
 
+        // Skip lines that are raw medication list entries (start with "- Tab" or "Tab ")
+        if (/^(?:[-–•*]\s*)?Tab\s+/i.test(trimmed)) {
+          continue;
+        }
+
         // Deduplication: Skip raw "Tab " prescription lines if an action line exists
         if (/^Tab\s+/i.test(trimmed) && /\b(?:mg|mcg|g|ml|bid|tid|qd|od|prn|INCREASED)\b/i.test(trimmed)) {
           const isRedundant = actionItems.some(item => {
@@ -1749,6 +1755,37 @@
           const cleanLine = trimmed.replace(/^[\d\-\•\*\.]+\s*/, '').trim();
           
           if (cleanLine.length > 5 && !/^(?:Plan|Assessment|Diagnosis):?$/i.test(cleanLine)) {
+            // Check if ANY medication in appState.parsedData.medications has a sourceText that includes the same drug name AND the same dosage/change verb
+            const currentMeds = (typeof appState !== 'undefined' && appState.parsedData && Array.isArray(appState.parsedData.medications))
+              ? appState.parsedData.medications
+              : [];
+
+            const isDuplicateMed = currentMeds.some(m => {
+              if (!m || !m.sourceText) return false;
+              const drugName = (m.name || '').trim().toLowerCase();
+              if (!drugName) return false;
+
+              const cleanLower = cleanLine.toLowerCase();
+              const mSourceLower = m.sourceText.toLowerCase();
+
+              // Drug name must be in the step
+              if (!cleanLower.includes(drugName)) return false;
+
+              // Check if both contain the same dosage
+              const dosageMatch = cleanLine.match(/\b\d+(?:\.\d+)?\s*(?:mg|mcg|g|ml|units?)\b/i);
+              const sameDosage = dosageMatch && mSourceLower.includes(dosageMatch[0].toLowerCase().replace(/\s+/g, ''));
+
+              // Check if both contain the same change verb
+              const changeVerbs = ['increase', 'decrease', 'start', 'stop', 'continue', 'discontinue', 'maintain', 'add', 'switch', 'titrate', 'reduce', 'escalate', 'hold'];
+              const sameVerb = changeVerbs.some(v => cleanLower.includes(v) && mSourceLower.includes(v));
+
+              return sameDosage || sameVerb;
+            });
+
+            if (isDuplicateMed) {
+              continue;
+            }
+
             const normalized = cleanLine.toLowerCase().replace(/[^a-z0-9]/g, '');
             if (!seenNormalized.has(normalized)) {
               seenNormalized.add(normalized);
@@ -2073,18 +2110,22 @@
         return "Please input patient demographics or load a sample case to generate a synthesized clinical summary.";
       }
 
-      const nameStr = p.name;
+      const stripHtml = (str) => String(str || '').replace(/<[^>]*>/g, '');
+      const nameStr = stripHtml(p.name);
       const ageStr = p.age ? `${p.age}-year-old` : "patient";
-      const sexStr = p.sex ? p.sex.toLowerCase() : "";
+      const sexStr = p.sex ? stripHtml(p.sex).toLowerCase() : "";
 
-      let text = `${nameStr}, a ${ageStr} ${sexStr}, is documented with reported symptoms of ${p.symptoms || "unspecified baseline symptoms"}.`;
+      let text = `${nameStr}, a ${ageStr} ${sexStr}, is documented with reported symptoms of ${stripHtml(p.symptoms) || "unspecified baseline symptoms"}.`;
 
       // Medications
       if (d.medications.length > 0) {
         const medList = d.medications.map(m => `${m.name} ${m.dosage} (${m.frequency})`).join(', ');
         text += ` Active medications recorded in the medical note include: ${medList}.`;
       } else if (p.medications) {
-        text += ` Patient self-reported medications: ${p.medications}.`;
+        text += ` Patient self-reported medications: ${stripHtml(p.medications)}.`;
+      }
+      if (p.conditions) {
+        text += ` Existing conditions: ${stripHtml(p.conditions)}.`;
       }
 
       // Allergies
@@ -2188,9 +2229,10 @@
 
       if (appState.privacyMode) {
         const p = appState.patientProfile;
-        let safe = rawSummary;
+        let safe = MedLensSecurity.escapeHtml(rawSummary);
+        const escName = MedLensSecurity.escapeHtml(p.name);
         if (p.name && p.name !== "Not specified") {
-          safe = safe.replaceAll(p.name, '<span class="redact-val">[REDACTED NAME]</span>');
+          safe = safe.replaceAll(escName, '<span class="redact-val">[REDACTED NAME]</span>');
         }
         if (p.age) {
           safe = safe.replaceAll(`${p.age}-year-old`, '<span class="redact-val">[REDACTED AGE]</span>');
@@ -3689,9 +3731,8 @@ SOURCE-DOCUMENT INSTRUCTIONS:
     function renderLongitudinalComparison() {
       const container = document.getElementById('comparisonContent');
       
-      // Let's create an illustrative comparison using Case 1 baseline vs Case 2 current or current vs intake
-      const currentLabs = appState.parsedData.labResults || [];
-      const currentMeds = appState.parsedData.medications || [];
+      const currentLabs = (appState && appState.parsedData && appState.parsedData.labResults) || [];
+      const currentMeds = (appState && appState.parsedData && appState.parsedData.medications) || [];
 
       if (currentLabs.length === 0 && currentMeds.length === 0) {
         container.innerHTML = `
@@ -3702,94 +3743,146 @@ SOURCE-DOCUMENT INSTRUCTIONS:
         return;
       }
 
-      // Generate comparison rows across labs
+      // 1. Try to load the actual previous report from localStorage key 'medlens_patients_backup' for the currently loaded patient name
+      const currentPatientName = ((document.getElementById('pName') && document.getElementById('pName').value) || (appState.patientProfile && appState.patientProfile.name) || '').trim();
+      
+      let localPats = [];
+      try {
+        localPats = JSON.parse(localStorage.getItem('medlens_patients_backup') || '[]');
+      } catch (e) {
+        localPats = [];
+      }
+
+      const storedPatient = localPats.find(p => p.name && currentPatientName && p.name.trim().toLowerCase() === currentPatientName.toLowerCase());
+      const baselineLabs = (storedPatient && storedPatient.parsed_data && storedPatient.parsed_data.labResults) || (storedPatient && storedPatient.labResults) || [];
+      const baselineMeds = (storedPatient && storedPatient.parsed_data && storedPatient.parsed_data.medications) || (storedPatient && storedPatient.medications) || [];
+
+      // 3. If NOT found, display a clear message: "No prior report stored for this patient. Load or save a previous report to enable factual comparison." Do NOT show fake demo data.
+      if (!storedPatient || (baselineLabs.length === 0 && baselineMeds.length === 0)) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 2.5rem 1.5rem; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md);">
+            <div style="font-size: 2.2rem; margin-bottom: 0.75rem;">📋</div>
+            <div style="font-weight: 700; color: var(--text-main); font-size: 1rem; margin-bottom: 0.5rem;">
+              No prior report stored for this patient. Load or save a previous report to enable factual comparison.
+            </div>
+            <p style="font-size: 0.82rem; color: var(--text-muted); max-width: 520px; margin: 0 auto;">
+              MedLens strictly enforces clinical honesty and provenance. To see objective delta tracking and regimen changes, click <strong>"Save Current Patient &amp; Report"</strong> to store this baseline, or load an existing patient profile from the Records library.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      // 2. If found, use that report's labResults and medications as the baseline
       let html = `
-        <h4 style="color: var(--text-main); margin-bottom: 0.6rem; font-size: 0.95rem;">🔬 Diagnostic Laboratory Comparison</h4>
-        <table class="data-table" style="margin-bottom: 1.5rem;">
-          <thead>
-            <tr>
-              <th>Diagnostic Test</th>
-              <th>Documented Baseline (Prev)</th>
-              <th>Current Document Result</th>
-              <th>Factual Difference</th>
-            </tr>
-          </thead>
-          <tbody>
+        <div style="background: rgba(59, 130, 246, 0.08); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-sm); padding: 0.6rem 0.9rem; margin-bottom: 1.2rem; font-size: 0.8rem; color: var(--text-muted);">
+          👤 <strong>Comparing Against Stored Baseline:</strong> ${MedLensSecurity.escapeHtml(storedPatient.name)} • Saved: ${storedPatient.updated_at ? new Date(storedPatient.updated_at).toLocaleDateString() : 'Previous Record'}
+        </div>
       `;
 
-      // Mock previous baseline values for illustration or match from stored history
-      const previousLabBaselines = {
-        "Glucose": { val: "185", unit: "mg/dL", range: "70-99", status: "ABNORMAL (HIGH)" },
-        "HbA1c": { val: "8.9", unit: "%", range: "4.0-5.6", status: "ABNORMAL (HIGH)" },
-        "Serum Creatinine": { val: "1.4", unit: "mg/dL", range: "0.6-1.2", status: "ABNORMAL (HIGH)" },
-        "Total Cholesterol": { val: "240", unit: "mg/dL", range: "<200", status: "ABNORMAL (HIGH)" },
-        "Hemoglobin": { val: "13.2", unit: "g/dL", range: "13.5-17.5", status: "ABNORMAL (LOW)" },
-        "Blood Pressure": { val: "148/92", unit: "mmHg", range: "Not provided", status: "Source Range Not Provided" }
-      };
-
-      currentLabs.forEach(l => {
-        const prev = previousLabBaselines[l.testName];
-        let diffText = "New test documented in current record";
-        if (prev) {
-          const numCurr = parseFloat(l.value);
-          const numPrev = parseFloat(prev.val);
-          if (!isNaN(numCurr) && !isNaN(numPrev)) {
-            const delta = (numCurr - numPrev).toFixed(1);
-            const sign = delta > 0 ? `+${delta}` : delta;
-            diffText = `${prev.val} → ${l.value} (${sign} ${l.unit})`;
-          } else {
-            diffText = `${prev.val} → ${l.value}`;
-          }
-        }
-
+      if (currentLabs.length > 0) {
         html += `
-          <tr>
-            <td><strong>${MedLensSecurity.escapeHtml(l.testName)}</strong></td>
-            <td>${prev ? `${prev.val} ${prev.unit} <span class="badge ${prev.status.includes('ABNORMAL') ? 'status-abnormal' : 'status-normal'}">${prev.status}</span>` : '<span style="color: var(--text-subtle);">No prior documented result</span>'}</td>
-            <td>${l.value} ${l.unit} <span class="badge ${l.status.includes('ABNORMAL') ? 'status-abnormal' : 'status-normal'}">${l.status}</span></td>
-            <td><strong>${MedLensSecurity.escapeHtml(diffText)}</strong></td>
-          </tr>
+          <h4 style="color: var(--text-main); margin-bottom: 0.6rem; font-size: 0.95rem;">🔬 Diagnostic Laboratory Comparison</h4>
+          <table class="data-table" style="margin-bottom: 1.5rem;">
+            <thead>
+              <tr>
+                <th>Diagnostic Test</th>
+                <th>Documented Baseline (Prev)</th>
+                <th>Current Document Result</th>
+                <th>Factual Difference</th>
+              </tr>
+            </thead>
+            <tbody>
         `;
-      });
 
-      html += `</tbody></table>`;
+        const prevLabMap = {};
+        baselineLabs.forEach(l => {
+          if (l.testName) prevLabMap[l.testName.toLowerCase()] = l;
+        });
+
+        currentLabs.forEach(l => {
+          const prev = prevLabMap[l.testName.toLowerCase()];
+          let diffText = "New test documented in current record";
+          if (prev) {
+            const numCurr = parseFloat(String(l.value).replace(/,/g, ''));
+            const numPrev = parseFloat(String(prev.value || prev.val).replace(/,/g, ''));
+            const prevValStr = prev.value || prev.val || '';
+            const prevUnitStr = prev.unit || l.unit || '';
+            if (!isNaN(numCurr) && !isNaN(numPrev)) {
+              const delta = (numCurr - numPrev).toFixed(1);
+              const sign = delta > 0 ? `+${delta}` : delta;
+              diffText = `${prevValStr} → ${l.value} (${sign} ${l.unit})`;
+            } else {
+              diffText = `${prevValStr} → ${l.value}`;
+            }
+          }
+
+          const prevStatus = prev ? (prev.status || "DOCUMENTED") : "";
+          const prevValDisplay = prev ? `${prev.value || prev.val} ${prev.unit || ''} <span class="badge ${prevStatus.includes('ABNORMAL') ? 'status-abnormal' : 'status-normal'}">${prevStatus}</span>` : '<span style="color: var(--text-subtle);">No prior documented result</span>';
+
+          html += `
+            <tr>
+              <td><strong>${MedLensSecurity.escapeHtml(l.testName)}</strong></td>
+              <td>${prevValDisplay}</td>
+              <td>${MedLensSecurity.escapeHtml(l.value)} ${MedLensSecurity.escapeHtml(l.unit)} <span class="badge ${l.status.includes('ABNORMAL') ? 'status-abnormal' : 'status-normal'}">${MedLensSecurity.escapeHtml(l.status)}</span></td>
+              <td><strong>${MedLensSecurity.escapeHtml(diffText)}</strong></td>
+            </tr>
+          `;
+        });
+
+        html += `</tbody></table>`;
+      }
 
       // Medications comparison
-      html += `
-        <h4 style="color: var(--text-main); margin-bottom: 0.6rem; font-size: 0.95rem;">💊 Medication & Regimen Comparison</h4>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Medication Name</th>
-              <th>Intake / Prior Regimen</th>
-              <th>Current Source Order</th>
-              <th>Documented Regimen Change</th>
-            </tr>
-          </thead>
-          <tbody>
-      `;
-
-      currentMeds.forEach(m => {
-        let prevNote = "Not listed in patient intake";
-        if (appState.patientProfile.medications && appState.patientProfile.medications.toLowerCase().includes(m.name.toLowerCase())) {
-          prevNote = "Listed in patient intake";
-        }
-        let changeNote = "Active order documented in report";
-        if (m.dosage && m.dosage.toLowerCase().includes("increase")) {
-          changeNote = "Dosage escalation documented in source";
-        }
-
+      if (currentMeds.length > 0) {
         html += `
-          <tr>
-            <td><strong>${MedLensSecurity.escapeHtml(m.name)}</strong></td>
-            <td>${prevNote}</td>
-            <td>${MedLensSecurity.escapeHtml(m.dosage)} (${MedLensSecurity.escapeHtml(m.frequency)})</td>
-            <td>${changeNote}</td>
-          </tr>
+          <h4 style="color: var(--text-main); margin-bottom: 0.6rem; font-size: 0.95rem;">💊 Medication &amp; Regimen Comparison</h4>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Medication Name</th>
+                <th>Baseline / Prior Regimen</th>
+                <th>Current Source Order</th>
+                <th>Documented Regimen Change</th>
+              </tr>
+            </thead>
+            <tbody>
         `;
-      });
 
-      html += `</tbody></table>`;
+        const prevMedMap = {};
+        baselineMeds.forEach(m => {
+          if (m.name) prevMedMap[m.name.toLowerCase()] = m;
+        });
+
+        currentMeds.forEach(m => {
+          const prior = prevMedMap[m.name.toLowerCase()];
+          let prevNote = "Not documented in prior report";
+          if (prior) {
+            prevNote = `${prior.dosage || ''} ${prior.frequency || ''}`.trim() || "Documented in prior report";
+          } else if (appState.patientProfile && appState.patientProfile.medications && appState.patientProfile.medications.toLowerCase().includes(m.name.toLowerCase())) {
+            prevNote = "Listed in patient intake declaration";
+          }
+
+          let changeNote = "Active order documented in report";
+          if (prior && (m.dosage !== prior.dosage || m.frequency !== prior.frequency)) {
+            changeNote = `Changed from prior: ${prior.dosage || ''} → ${m.dosage || ''}`;
+          } else if (m.dosage && m.dosage.toLowerCase().includes("increase")) {
+            changeNote = "Dosage escalation documented in source";
+          }
+
+          html += `
+            <tr>
+              <td><strong>${MedLensSecurity.escapeHtml(m.name)}</strong></td>
+              <td>${MedLensSecurity.escapeHtml(prevNote)}</td>
+              <td>${MedLensSecurity.escapeHtml(m.dosage || '')} (${MedLensSecurity.escapeHtml(m.frequency || '')})</td>
+              <td>${MedLensSecurity.escapeHtml(changeNote)}</td>
+            </tr>
+          `;
+        });
+
+        html += `</tbody></table>`;
+      }
+
       container.innerHTML = html;
     }
 

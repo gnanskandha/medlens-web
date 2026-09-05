@@ -1,15 +1,10 @@
 {
   "name": "medlens",
-  "version": "2.0.0",
-  "description": "MedLens — Clinical Intelligence & Record Review Engine",
-  "main": "server.js",
+  "version": "1.0.0",
   "scripts": {
-    "start": "node server.js",
-    "test": "node scratch/run_tests.js"
+    "start": "node server.js"
   },
   "dependencies": {
-    "express": "^4.21.2",
-    "cors": "^2.8.5",
-    "dotenv": "^16.4.7"
+    "express": "^4.18.2"
   }
 }
