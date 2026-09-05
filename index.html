@@ -198,39 +198,13 @@
       font-weight: 500;
     }
 
-    .header-engine {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .engine-badge {
-      font-size: 0.75rem;
-      padding: 0.3rem 0.65rem;
-      border-radius: var(--radius-full);
-      background: var(--bg-surface-elevated);
-      border: 1px solid var(--border-color);
-      color: var(--text-muted);
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      font-weight: 600;
-    }
-
-    .engine-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: var(--status-success);
-      display: inline-block;
-      box-shadow: 0 0 6px var(--status-success);
-    }
-
     .header-actions {
       display: flex;
       align-items: center;
       gap: 0.45rem;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      justify-content: flex-end;
+      margin-left: auto;
     }
 
     .header-btn {
@@ -1565,14 +1539,6 @@
           <h1>MedLens</h1>
           <p>Clinical Intelligence &amp; Record Review</p>
         </div>
-      </div>
-
-      <!-- Center: Engine Status Indicator -->
-      <div class="header-engine">
-        <span class="engine-badge" id="aiModeIndicator">
-          <span class="engine-dot"></span>
-          <span id="aiModeLabel">Local Deterministic Engine</span>
-        </span>
       </div>
 
       <!-- Right: System Controls -->
@@ -3889,7 +3855,6 @@
             <td>${renderConfidenceBadge(l.confidence)}</td>
             <td style="text-align: right; white-space: nowrap;">
               <button class="btn btn-xs" onclick="openProvenanceModal('lab', '${l.id}')" title="View clinical provenance">🔍 Source</button>
-              <button class="btn btn-xs" onclick="openEditModal('lab', '${l.id}')" title="Edit result">Edit</button>
               <button class="btn btn-xs ${isVerified ? '' : 'btn-primary'}" onclick="verifyField('lab', '${l.id}')" title="Verify result">${isVerified ? '✓' : 'Verify'}</button>
             </td>
           </tr>
@@ -3977,9 +3942,6 @@
         appState.parsedData.allergies = parseAllergies(text, appState.patientProfile.allergies);
         appState.parsedData.labResults = parseLabResults(text);
         appState.parsedData.nextSteps = parseNextSteps(text);
-
-        const modeEl = document.getElementById('aiModeLabel');
-        if (modeEl) modeEl.innerHTML = '🛡️ <strong>Engine:</strong> Local Automated Extraction (Deterministic Clinical Regex)';
       }
 
       // 3. Conflict Detection
@@ -4069,9 +4031,6 @@
         verificationStatus: "Unverified",
         auditLog: [`Extracted by AI (${provider})`]
       }));
-
-      const modeEl = document.getElementById('aiModeLabel');
-      if (modeEl) modeEl.innerHTML = `🤖 <strong>Engine:</strong> AI Extracted (${provider}) — Passed Clinical Deterministic Safety Engine`;
     }
 
     function extractPatientProfile() {
@@ -4880,12 +4839,8 @@ PLAN:
     function checkBackendStatus() {
       backendAvailable = false;
       aiProviderName = "Offline (Client-Side Standalone)";
-      const statusEl = document.getElementById('aiBackendStatus');
-      const modeEl = document.getElementById('aiModeLabel');
       const kpiEngine = document.getElementById('kpiEngineStatus');
-      if (statusEl) statusEl.textContent = 'Backend: Offline (Client-Side Standalone)';
       if (kpiEngine) kpiEngine.textContent = '100% Client-Side Engine';
-      if (modeEl) modeEl.innerHTML = '🛡️ <strong>Engine:</strong> Local Automated Extraction (Deterministic Clinical Regex)';
     }
 
     async function requestAIAnalysis(reportText, profile) {
