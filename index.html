@@ -1,31 +1,33 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MedLens — Clinical Intelligence &amp; Record Review Engine</title>
-  <meta name="description" content="A client-side medical record structuring and review tool that transforms fragmented clinical notes, prescriptions, and lab records into structured, reviewable records with source provenance, conflict detection, and human verification.">
+  <meta name="description"
+    content="A client-side medical record structuring and review tool that transforms fragmented clinical notes, prescriptions, and lab records into structured, reviewable records with source provenance, conflict detection, and human verification.">
 
   <style>
-
-    :root, [data-theme="dark"] {
+    :root,
+    [data-theme="dark"] {
       --bg-primary: #0b0f19;
       --bg-surface: #111827;
       --bg-surface-elevated: #1f2937;
       --bg-surface-card: #111827;
       --bg-hover: #1e293b;
-      
+
       --accent-blue: #3b82f6;
       --accent-blue-hover: #2563eb;
       --accent-blue-subtle: rgba(59, 130, 246, 0.12);
       --accent-cyan: #06b6d4;
       --accent-teal: #0d9488;
       --accent-indigo: #6366f1;
-      
+
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --text-subtle: #64748b;
-      
+
       --status-success: #10b981;
       --status-success-bg: rgba(16, 185, 129, 0.12);
       --status-warning: #f59e0b;
@@ -34,16 +36,16 @@
       --status-danger-bg: rgba(239, 68, 68, 0.12);
       --status-info: #3b82f6;
       --status-info-bg: rgba(59, 130, 246, 0.12);
-      
+
       --border-color: rgba(255, 255, 255, 0.1);
       --border-color-subtle: rgba(255, 255, 255, 0.06);
       --border-focus: #3b82f6;
-      
+
       --radius-sm: 6px;
       --radius-md: 10px;
       --radius-lg: 16px;
       --radius-full: 9999px;
-      
+
       --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.24);
       --card-shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.5);
       --table-header-bg: #141e30;
@@ -58,18 +60,18 @@
       --bg-surface-elevated: #f1f5f9;
       --bg-surface-card: #ffffff;
       --bg-hover: #e2e8f0;
-      
+
       --accent-blue: #2563eb;
       --accent-blue-hover: #1d4ed8;
       --accent-blue-subtle: rgba(37, 99, 235, 0.08);
       --accent-cyan: #0891b2;
       --accent-teal: #0f766e;
       --accent-indigo: #4f46e5;
-      
+
       --text-main: #0f172a;
       --text-muted: #475569;
       --text-subtle: #64748b;
-      
+
       --status-success: #059669;
       --status-success-bg: #ecfdf5;
       --status-warning: #d97706;
@@ -78,11 +80,11 @@
       --status-danger-bg: #fef2f2;
       --status-info: #2563eb;
       --status-info-bg: #eff6ff;
-      
+
       --border-color: #e2e8f0;
       --border-color-subtle: #f1f5f9;
       --border-focus: #2563eb;
-      
+
       --card-shadow: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
       --card-shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.09);
       --table-header-bg: #f8fafc;
@@ -95,6 +97,12 @@
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    html,
+    body {
+      max-width: 100vw;
+      overflow-x: hidden;
     }
 
     body {
@@ -112,10 +120,23 @@
       outline-offset: 2px;
     }
 
-    ::-webkit-scrollbar { width: 8px; height: 8px; }
-    ::-webkit-scrollbar-track { background: var(--bg-primary); }
-    ::-webkit-scrollbar-thumb { background: var(--bg-surface-elevated); border-radius: var(--radius-full); }
-    ::-webkit-scrollbar-thumb:hover { background: var(--accent-blue); }
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-primary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-surface-elevated);
+      border-radius: var(--radius-full);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-blue);
+    }
 
     /* Header */
     header {
@@ -129,13 +150,18 @@
     }
 
     .header-container {
-      max-width: 1520px;
+      width: 100%;
+      max-width: 100%;
       margin: 0 auto;
+      padding-left: clamp(0.75rem, 2vw, 1.5rem);
+      padding-right: clamp(0.75rem, 2vw, 1.5rem);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
+      overflow: hidden;
       gap: 0.85rem;
+      box-sizing: border-box;
     }
 
     .brand {
@@ -282,16 +308,23 @@
     .nav-tabs-bar {
       background: var(--bg-surface);
       border-bottom: 1px solid var(--border-color);
-      padding: 0.35rem 1.5rem;
+      padding: 0.35rem 0;
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
     }
 
     .nav-tabs-container {
-      max-width: 1520px;
+      width: 100%;
+      max-width: 100%;
       margin: 0 auto;
+      padding-left: clamp(0.75rem, 2vw, 1.5rem);
+      padding-right: clamp(0.75rem, 2vw, 1.5rem);
       display: flex;
       gap: 0.4rem;
       overflow-x: auto;
       scrollbar-width: none;
+      box-sizing: border-box;
     }
 
     .nav-tabs-container::-webkit-scrollbar {
@@ -324,11 +357,12 @@
 
     /* Main Container */
     main {
-      max-width: 1520px;
-      margin: 1.25rem auto;
-      padding: 0 1.5rem;
-      flex: 1;
       width: 100%;
+      max-width: 100%;
+      margin: 1.25rem auto;
+      padding: 0 clamp(0.75rem, 2vw, 1.5rem);
+      flex: 1;
+      box-sizing: border-box;
     }
 
     /* Welcome / First-Open Hero Card */
@@ -426,9 +460,12 @@
     /* Top KPI Metric Cards */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-      gap: 1rem;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 0.75rem;
       margin-bottom: 1.25rem;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     .kpi-card {
@@ -557,9 +594,12 @@
     /* Dashboard Layout Grid */
     .dashboard-layout {
       display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 1.25rem;
+      grid-template-columns: minmax(300px, 32%) 1fr;
+      gap: clamp(0.5rem, 1.5vw, 1.25rem);
       align-items: start;
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
     }
 
     @media (max-width: 1080px) {
@@ -781,9 +821,12 @@
     /* Clinical Tables */
     .table-responsive {
       width: 100%;
+      max-width: 100%;
+      display: block;
       overflow-x: auto;
       border: 1px solid var(--border-color);
       border-radius: var(--radius-sm);
+      box-sizing: border-box;
     }
 
     .clinical-table {
@@ -1171,11 +1214,12 @@
       border: 1px solid var(--border-color);
       border-radius: var(--radius-md);
       width: 100%;
-      max-width: 580px;
+      max-width: min(90vw, 580px);
       padding: 1.5rem;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
       max-height: 90vh;
       overflow-y: auto;
+      box-sizing: border-box;
     }
 
     .modal-header {
@@ -1224,18 +1268,25 @@
     footer {
       background: var(--bg-surface);
       border-top: 1px solid var(--border-color);
-      padding: 1rem 1.5rem;
+      padding: 1rem 0;
+      width: 100%;
+      max-width: 100vw;
+      box-sizing: border-box;
       margin-top: 2rem;
     }
 
     .safety-notice {
-      max-width: 1520px;
+      width: 100%;
+      max-width: 100%;
       margin: 0 auto;
+      padding: 0 clamp(0.75rem, 2vw, 1.5rem);
       font-size: 0.75rem;
       color: var(--text-muted);
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 0.5rem;
+      box-sizing: border-box;
     }
 
     /* Print Optimization */
@@ -1244,29 +1295,44 @@
         background: #fff !important;
         color: #000 !important;
       }
-      header, .nav-tabs-bar, .welcome-banner, #inputColumn, .conflict-actions, .kpi-meta,
-      .btn, .export-dropdown, .header-actions, .item-controls, footer, .modal-overlay {
+
+      header,
+      .nav-tabs-bar,
+      .welcome-banner,
+      #inputColumn,
+      .conflict-actions,
+      .kpi-meta,
+      .btn,
+      .export-dropdown,
+      .header-actions,
+      .item-controls,
+      footer,
+      .modal-overlay {
         display: none !important;
       }
+
       .dashboard-layout {
         display: block !important;
       }
+
       .card {
         border: 1px solid #ddd !important;
         box-shadow: none !important;
         background: #fff !important;
         page-break-inside: avoid;
       }
+
       .clinical-table th {
         background: #f0f0f0 !important;
         color: #000 !important;
       }
+
       .clinical-table td {
         color: #000 !important;
       }
     }
 
-  
+
     /* Clinical Alerts Banner (Module K) */
     .clinical-alerts-banner {
       display: flex;
@@ -1356,7 +1422,7 @@
       border-radius: 50%;
       transform: translateX(-50%);
       border: 2px solid #ffffff;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
       z-index: 2;
     }
 
@@ -1384,9 +1450,11 @@
       border-bottom: 1px solid var(--border-color);
       font-size: 0.85rem;
     }
+
     .test-result-row:last-child {
       border-bottom: none;
     }
+
     .test-pass {
       color: #10b981;
       font-weight: 700;
@@ -1394,6 +1462,7 @@
       align-items: center;
       gap: 0.25rem;
     }
+
     .test-fail {
       color: #ef4444;
       font-weight: 700;
@@ -1408,6 +1477,7 @@
       font-size: 0.82rem;
       margin: 0.5rem 0;
     }
+
     .data-table th {
       background: var(--bg-surface-elevated);
       color: var(--text-muted);
@@ -1416,11 +1486,13 @@
       font-weight: 600;
       border-bottom: 1px solid var(--border-color);
     }
+
     .data-table td {
       padding: 0.6rem 0.75rem;
       border-bottom: 1px solid var(--border-color);
       color: var(--text-main);
     }
+
     .data-table tbody tr:hover {
       background: var(--bg-surface-elevated);
     }
@@ -1438,11 +1510,42 @@
       user-select: none;
       border: 1px dashed var(--border-color);
     }
+  
+    /* Laptop & Mid-size Screen Responsive Adjustments */
+    @media (max-width: 1400px) {
+      .clinical-table th,
+      .clinical-table td,
+      .data-table th,
+      .data-table td {
+        padding: 0.5rem 0.65rem;
+      }
+    }
+
+    @media (max-width: 1200px) {
+      .brand-title {
+        font-size: 1.05rem;
+      }
+      .brand-subtitle {
+        font-size: 0.68rem;
+      }
+      .header-btn {
+        padding: 0.35rem 0.55rem;
+        font-size: 0.75rem;
+      }
+      .btn-analyze {
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+      }
+      .header-actions {
+        gap: 0.35rem;
+      }
+    }
 </style>
   <!-- PDF.js & Tesseract.js (Client-Side Document Parsing & OCR) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 </head>
+
 <body>
 
   <!-- Top Navigation / Branding Header -->
@@ -1451,10 +1554,11 @@
       <!-- Left: Medical Intelligence Branding -->
       <div class="brand">
         <div class="brand-icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <line x1="12" y1="8" x2="12" y2="16"/>
-            <line x1="8" y1="12" x2="16" y2="12"/>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <line x1="12" y1="8" x2="12" y2="16" />
+            <line x1="8" y1="12" x2="16" y2="12" />
           </svg>
         </div>
         <div class="brand-text">
@@ -1474,12 +1578,14 @@
       <!-- Right: System Controls -->
       <div class="header-actions">
         <!-- Privacy Mode Toggle -->
-        <button class="header-btn" id="privacyToggleBtn" onclick="togglePrivacyMode()" aria-pressed="false" title="Toggle PHI Redaction">
+        <button class="header-btn" id="privacyToggleBtn" onclick="togglePrivacyMode()" aria-pressed="false"
+          title="Toggle PHI Redaction">
           <span id="privacyToggleLabel">🔒 Privacy Mode: OFF</span>
         </button>
 
         <!-- Light / Dark Theme Switch -->
-        <button class="header-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle light or dark theme" title="Switch Theme">
+        <button class="header-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle light or dark theme"
+          title="Switch Theme">
           🌙 Dark
         </button>
 
@@ -1494,7 +1600,8 @@
         </button>
 
         <!-- Primary Analyze Action -->
-        <button class="btn btn-primary btn-analyze" id="analyzeBtn" onclick="processAllData()" aria-label="Parse and analyze clinical record">
+        <button class="btn btn-primary btn-analyze" id="analyzeBtn" onclick="processAllData()"
+          aria-label="Parse and analyze clinical record">
           <span id="analyzeBtnLabel">⚡ Analyze &amp; Review</span>
         </button>
       </div>
@@ -1504,7 +1611,8 @@
   <!-- Secondary Dashboard Navigation Tabs -->
   <nav class="nav-tabs-bar" role="navigation" aria-label="Dashboard Navigation">
     <div class="nav-tabs-container">
-      <button class="nav-tab active" onclick="switchDashboardTab('overview')" id="tab-overview">📊 Overview Dashboard</button>
+      <button class="nav-tab active" onclick="switchDashboardTab('overview')" id="tab-overview">📊 Overview
+        Dashboard</button>
       <button class="nav-tab" onclick="switchDashboardTab('patient')" id="tab-patient">👤 Patient Intake</button>
       <button class="nav-tab" onclick="switchDashboardTab('report')" id="tab-report">📄 Medical Report Input</button>
       <button class="nav-tab" onclick="switchDashboardTab('medications')" id="tab-medications">💊 Medications</button>
@@ -1525,7 +1633,8 @@
       </div>
       <h2 class="welcome-title">Transform medical reports into structured, traceable information for safer review.</h2>
       <p class="welcome-desc">
-        MedLens extracts patient information, medications, allergies, laboratory results and documented instructions from medical records while preserving source provenance and avoiding unsupported clinical conclusions.
+        MedLens extracts patient information, medications, allergies, laboratory results and documented instructions
+        from medical records while preserving source provenance and avoiding unsupported clinical conclusions.
       </p>
       <div class="welcome-steps">
         <div class="welcome-step">
@@ -1575,7 +1684,8 @@
         </div>
         <div class="kpi-value"><span id="metricCompleteness">0</span>%</div>
         <div class="kpi-sub" id="metricCompletenessDetail">Evaluating baseline fields</div>
-        <div class="kpi-meta"><span id="metricTotalFieldsBadge" class="badge badge-review">0 fields extracted</span></div>
+        <div class="kpi-meta"><span id="metricTotalFieldsBadge" class="badge badge-review">0 fields extracted</span>
+        </div>
       </div>
 
       <!-- Card 3: Review Status -->
@@ -1608,26 +1718,31 @@
 
     <!-- Potential Clinical Conflicts Section -->
     <div id="conflictSectionContainer" class="dashboard-card-section">
-      <section class="conflict-card hidden" id="conflictBanner" aria-live="assertive" aria-label="Clinical Data Conflicts">
+      <section class="conflict-card hidden" id="conflictBanner" aria-live="assertive"
+        aria-label="Clinical Data Conflicts">
         <div class="conflict-header">
           <h3 class="conflict-title">⚠️ Potential Clinical Conflicts Detected</h3>
-          <p class="conflict-desc">Inconsistencies detected between patient-reported intake and medical report documentation. Review before accepting structured record.</p>
+          <p class="conflict-desc">Inconsistencies detected between patient-reported intake and medical report
+            documentation. Review before accepting structured record.</p>
         </div>
         <div id="conflictList" class="conflict-list"></div>
       </section>
       <div id="noConflictNotice" class="clean-state-banner">
-        <span>✓</span> <strong>No Clinical Conflicts Detected</strong> — Patient-reported baseline aligns with extracted documentation.
+        <span>✓</span> <strong>No Clinical Conflicts Detected</strong> — Patient-reported baseline aligns with extracted
+        documentation.
       </div>
     </div>
 
     <!-- Review Required (Clarifications Engine) -->
-    <section class="card attention-card dashboard-card-section" id="clarificationSection" aria-labelledby="clarificationTitle">
+    <section class="card attention-card dashboard-card-section" id="clarificationSection"
+      aria-labelledby="clarificationTitle">
       <div class="card-header">
         <div>
           <h3 id="clarificationTitle" class="card-title">
             <span class="card-icon" aria-hidden="true">⚠️</span> Review Required
           </h3>
-          <p class="card-desc">These items require clarification or human verification because information is missing, contradictory, or uncertain.</p>
+          <p class="card-desc">These items require clarification or human verification because information is missing,
+            contradictory, or uncertain.</p>
         </div>
         <span class="badge badge-attention">Safety Protocol</span>
       </div>
@@ -1636,10 +1751,10 @@
 
     <!-- Main Responsive Dashboard Grid -->
     <div class="dashboard-layout">
-      
+
       <!-- LEFT COLUMN: Patient Intake & Unstructured Document Input -->
       <div class="input-column" id="inputColumn">
-        
+
         <!-- SECTION 1: Patient Overview & Intake Form -->
         <section class="card" id="intakeFormSection" aria-labelledby="intakeFormTitle">
           <div class="card-header">
@@ -1675,22 +1790,26 @@
 
             <div class="form-group">
               <label for="pSymptoms">Current Symptoms</label>
-              <textarea id="pSymptoms" placeholder="e.g. Fatigue, episodic dizziness">Fatigue, episodic dizziness</textarea>
+              <textarea id="pSymptoms"
+                placeholder="e.g. Fatigue, episodic dizziness">Fatigue, episodic dizziness</textarea>
             </div>
 
             <div class="form-group">
               <label for="pConditions">Existing Conditions / History</label>
-              <textarea id="pConditions" placeholder="e.g. Essential Hypertension, Type 2 Diabetes">Essential Hypertension</textarea>
+              <textarea id="pConditions"
+                placeholder="e.g. Essential Hypertension, Type 2 Diabetes">Essential Hypertension</textarea>
             </div>
 
             <div class="form-group">
               <label for="pAllergies">Known Allergies (Patient Reported)</label>
-              <textarea id="pAllergies" placeholder="e.g. No Known Drug Allergies or Penicillin">No Known Drug Allergies</textarea>
+              <textarea id="pAllergies"
+                placeholder="e.g. No Known Drug Allergies or Penicillin">No Known Drug Allergies</textarea>
             </div>
 
             <div class="form-group">
               <label for="pMedications">Current Medications (Self-Reported)</label>
-              <textarea id="pMedications" placeholder="e.g. Paracetamol 500mg as needed">Paracetamol 500mg as needed</textarea>
+              <textarea id="pMedications"
+                placeholder="e.g. Paracetamol 500mg as needed">Paracetamol 500mg as needed</textarea>
             </div>
           </form>
         </section>
@@ -1702,13 +1821,15 @@
               <h2 id="reportInputTitle" class="card-title">
                 <span class="card-icon" aria-hidden="true">📄</span> Medical Report Analysis
               </h2>
-              <p class="card-desc">Upload or paste an unstructured medical report. MedLens extracts relevant clinical information and organizes it into structured fields for review.</p>
+              <p class="card-desc">Upload or paste an unstructured medical report. MedLens extracts relevant clinical
+                information and organizes it into structured fields for review.</p>
             </div>
             <button class="btn btn-xs" onclick="openUploadDialog()" aria-label="Upload document file">📁 Upload</button>
           </div>
 
           <!-- Document Upload Dropzone -->
-          <div class="dropzone-area" onclick="openUploadDialog()" role="button" tabindex="0" aria-label="Upload clinical document">
+          <div class="dropzone-area" onclick="openUploadDialog()" role="button" tabindex="0"
+            aria-label="Upload clinical document">
             <div class="dropzone-icon" aria-hidden="true">📁</div>
             <div class="dropzone-text">Upload Document (PDF, Image, Text)</div>
             <div class="dropzone-sub">Supports .pdf, .png, .jpg, .txt, .json, .csv, .md (Max 10MB)</div>
@@ -1716,23 +1837,33 @@
 
           <!-- Competition Judge Presets -->
           <div class="presets-container">
-            <span class="presets-label">Competition Demo Cases (1-Click Load):</span>
+            <span class="presets-label">Demo Cases :</span>
             <div class="presets-grid">
-              <button type="button" class="btn-preset" onclick="loadCase(1)" title="Clean cardiology case with lipid panel">Case 1: Cardiology</button>
-              <button type="button" class="btn-preset" onclick="loadCase(2)" title="Diabetes with elevated HbA1c and renal markers">Case 2: Diabetic Abnormal</button>
-              <button type="button" class="btn-preset" onclick="loadCase(3)" title="Intake NKDA vs Report Sulfa/Shellfish allergy contradiction">Case 3: Allergy Conflict</button>
-              <button type="button" class="btn-preset" onclick="loadCase(4)" title="Lab values without reference ranges demonstrating safety boundary">Case 4: Missing Ranges</button>
-              <button type="button" class="btn-preset" onclick="loadCase(5)" title="Dose escalation and medication ambiguity">Case 5: Dose Escalation</button>
-              <button type="button" class="btn-preset" onclick="loadCase(6)" title="Messy unformatted clinical note">Case 6: Unstructured EHR</button>
+              <button type="button" class="btn-preset" onclick="loadCase(1)"
+                title="Clean cardiology case with lipid panel">Case 1: Cardiology</button>
+              <button type="button" class="btn-preset" onclick="loadCase(2)"
+                title="Diabetes with elevated HbA1c and renal markers">Case 2: Diabetic Abnormal</button>
+              <button type="button" class="btn-preset" onclick="loadCase(3)"
+                title="Intake NKDA vs Report Sulfa/Shellfish allergy contradiction">Case 3: Allergy Conflict</button>
+              <button type="button" class="btn-preset" onclick="loadCase(4)"
+                title="Lab values without reference ranges demonstrating safety boundary">Case 4: Missing
+                Ranges</button>
+              <button type="button" class="btn-preset" onclick="loadCase(5)"
+                title="Dose escalation and medication ambiguity">Case 5: Dose Escalation</button>
+              <button type="button" class="btn-preset" onclick="loadCase(6)"
+                title="Messy unformatted clinical note">Case 6: Unstructured EHR</button>
             </div>
           </div>
 
           <div class="form-group">
             <label for="reportText">Medical Text (Notes, Labs, Prescriptions)</label>
-            <textarea id="reportText" class="medical-textarea" placeholder="Paste EHR note, lab values, or discharge summary here..." oninput="triggerAutoParse()"></textarea>
+            <textarea id="reportText" class="medical-textarea"
+              placeholder="Paste EHR note, lab values, or discharge summary here..."
+              oninput="triggerAutoParse()"></textarea>
           </div>
-          
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-subtle);">
+
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; font-size: 0.74rem; color: var(--text-subtle);">
             <button class="btn btn-xs" onclick="clearReportText()" aria-label="Clear medical text">Clear Text</button>
             <span id="charWordCount">0 chars • 0 words</span>
           </div>
@@ -1744,22 +1875,30 @@
       <div class="output-column" id="outputColumn">
 
         <!-- Unified Export & Quick Bar -->
-        <section class="card" style="padding: 0.75rem 1.25rem; margin-bottom: 1.25rem;" aria-label="Record Export Actions">
-          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <section class="card" style="padding: 0.75rem 1.25rem; margin-bottom: 1.25rem;"
+          aria-label="Record Export Actions">
+          <div
+            style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-              <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Structured Record Output</span>
+              <span
+                style="font-size: 0.78rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em;">Structured
+                Record Output</span>
             </div>
             <div style="display: flex; align-items: center; gap: 0.5rem;">
               <!-- Unified Export Dropdown -->
               <div class="export-dropdown" id="exportDropdown">
-                <button class="btn btn-xs btn-export" onclick="toggleExportMenu()" id="exportMenuBtn" aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-xs btn-export" onclick="toggleExportMenu()" id="exportMenuBtn"
+                  aria-haspopup="true" aria-expanded="false">
                   📥 Export Record ▾
                 </button>
                 <div class="export-menu" id="exportMenu">
-                  <button class="export-item" onclick="copyAsText(); toggleExportMenu();">📋 Formatted Plain Text</button>
-                  <button class="export-item" onclick="copyAsMarkdown(); toggleExportMenu();">📄 Markdown Document</button>
+                  <button class="export-item" onclick="copyAsText(); toggleExportMenu();">📋 Formatted Plain
+                    Text</button>
+                  <button class="export-item" onclick="copyAsMarkdown(); toggleExportMenu();">📄 Markdown
+                    Document</button>
                   <button class="export-item" onclick="copyAsJSON(); toggleExportMenu();">📊 Structured JSON</button>
-                  <button class="export-item" onclick="window.print(); toggleExportMenu();">🖨️ Print Clinical Record</button>
+                  <button class="export-item" onclick="window.print(); toggleExportMenu();">🖨️ Print Clinical
+                    Record</button>
                 </div>
               </div>
             </div>
@@ -1773,7 +1912,8 @@
               <h3 id="summaryTitle" class="card-title">
                 <span class="card-icon" aria-hidden="true">💬</span> Patient-Friendly Summary
               </h3>
-              <p class="card-desc">A concise summary of information documented in the available records. This summary does not diagnose conditions or provide treatment recommendations.</p>
+              <p class="card-desc">A concise summary of information documented in the available records. This summary
+                does not diagnose conditions or provide treatment recommendations.</p>
             </div>
             <span class="badge badge-review">Review Only</span>
           </div>
@@ -1781,7 +1921,8 @@
             Enter patient details or load a sample case to generate a synthesized plain-English summary.
           </div>
           <div class="summary-disclaimer">
-            ⚕️ <strong>Safety Disclaimer:</strong> MedLens organizes information from the provided records for review. It does not diagnose conditions, prescribe treatment, or replace clinical judgment.
+            ⚕️ <strong>Safety Disclaimer:</strong> MedLens organizes information from the provided records for review.
+            It does not diagnose conditions, prescribe treatment, or replace clinical judgment.
           </div>
         </section>
 
@@ -1806,7 +1947,8 @@
               <h3 id="medicationsTitle" class="card-title">
                 <span class="card-icon" aria-hidden="true">💊</span> Medications
               </h3>
-              <p class="card-desc">Medications documented in the available records, including dosage and frequency when explicitly provided.</p>
+              <p class="card-desc">Medications documented in the available records, including dosage and frequency when
+                explicitly provided.</p>
             </div>
             <span id="medCountBadge" class="badge badge-count">0 items</span>
           </div>
@@ -1835,7 +1977,8 @@
               <h3 id="allergiesTitle" class="card-title">
                 <span class="card-icon" aria-hidden="true">⚠️</span> Allergies &amp; Adverse Reactions
               </h3>
-              <p class="card-desc">Known allergies or adverse reactions documented in the patient-provided information or medical record.</p>
+              <p class="card-desc">Known allergies or adverse reactions documented in the patient-provided information
+                or medical record.</p>
             </div>
             <span id="allergyCountBadge" class="badge badge-count">0 items</span>
           </div>
@@ -1863,14 +2006,16 @@
               <h3 id="labsTitle" class="card-title">
                 <span class="card-icon" aria-hidden="true">🔬</span> Laboratory Results
               </h3>
-              <p class="card-desc">Laboratory measurements are classified only when the source document provides a reference range. MedLens does not invent reference ranges.</p>
+              <p class="card-desc">Laboratory measurements are classified only when the source document provides a
+                reference range. MedLens does not invent reference ranges.</p>
             </div>
             <span id="labsCountBadge" class="badge badge-count">0 items</span>
           </div>
-          
+
           <div class="responsible-ai-banner">
             <span>🛡️</span>
-            <span><strong>Responsible AI Standard:</strong> Diagnostic tests are classified against source-stated ranges only. When omitted by source, status is declared as "Reference range not provided".</span>
+            <span><strong>Responsible AI Standard:</strong> Diagnostic tests are classified against source-stated ranges
+              only. When omitted by source, status is declared as "Reference range not provided".</span>
           </div>
 
           <div class="table-responsive">
@@ -1899,7 +2044,8 @@
               <h3 id="instructionsTitle" class="card-title">
                 <span class="card-icon" aria-hidden="true">📋</span> Source-Document Instructions
               </h3>
-              <p class="card-desc">Non-prescriptive instructions, follow-ups, and dietary recommendations extracted directly from the record.</p>
+              <p class="card-desc">Non-prescriptive instructions, follow-ups, and dietary recommendations extracted
+                directly from the record.</p>
             </div>
             <span id="stepsCountBadge" class="badge badge-count">0 items</span>
           </div>
@@ -1915,12 +2061,16 @@
   <footer role="contentinfo">
     <div class="safety-notice">
       <span>⚕️</span>
-      <span><strong>Clinical Safety &amp; Privacy Notice:</strong> MedLens organizes information from provided records for review. It does not diagnose conditions, prescribe treatment, or replace clinical judgment. All processing is strictly local to your browser; no patient data is transmitted to external servers. Diagnostic tests are classified against source-stated ranges only.</span>
+      <span><strong>Clinical Safety &amp; Privacy Notice:</strong> MedLens organizes information from provided records
+        for review. It does not diagnose conditions, prescribe treatment, or replace clinical judgment. All processing
+        is strictly local to your browser; no patient data is transmitted to external servers. Diagnostic tests are
+        classified against source-stated ranges only.</span>
     </div>
   </footer>
 
   <!-- Modal 1: Clinical Source Provenance & Audit Inspector -->
-  <div class="modal-overlay" id="provenanceModal" role="dialog" aria-modal="true" aria-labelledby="provenanceModalTitle">
+  <div class="modal-overlay" id="provenanceModal" role="dialog" aria-modal="true"
+    aria-labelledby="provenanceModalTitle">
     <div class="modal-container">
       <div class="modal-header">
         <h3 class="modal-title" id="provenanceModalTitle">📌 Clinical Source Provenance</h3>
@@ -1943,7 +2093,7 @@
       <form id="editFieldForm" onsubmit="saveFieldEdit(event)">
         <input type="hidden" id="editItemType">
         <input type="hidden" id="editItemId">
-        
+
         <div class="form-group">
           <label for="editFieldLabel">Field Name / Normalized Entity</label>
           <input type="text" id="editFieldLabel" required>
@@ -1961,7 +2111,9 @@
 
         <div class="form-group">
           <label>Original Source Document Snippet</label>
-          <div id="editFieldSourceText" class="item-source-quote" style="padding: 0.5rem 0.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: monospace; font-size: 0.82rem;"></div>
+          <div id="editFieldSourceText" class="item-source-quote"
+            style="padding: 0.5rem 0.75rem; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: monospace; font-size: 0.82rem;">
+          </div>
         </div>
 
         <div class="form-group">
@@ -1983,20 +2135,24 @@
 
   <!-- Modal 3: Automated Test Suite Modal -->
   <div class="modal-overlay" id="testModal" role="dialog" aria-modal="true" aria-labelledby="testModalTitle">
-    <div class="modal-container" style="max-width: 760px;">
+    <div class="modal-container" style="max-width: min(90vw, 760px);">
       <div class="modal-header">
         <h3 class="modal-title" id="testModalTitle">🧪 MedLens Automated Test Harness</h3>
         <button class="btn btn-xs" onclick="closeTestModal()" aria-label="Close test modal">✕</button>
       </div>
-      
-      <div id="testSuiteSummary" class="test-suite-summary" style="background: var(--bg-surface-elevated); padding: 0.8rem; border-radius: var(--radius-sm); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
+
+      <div id="testSuiteSummary" class="test-suite-summary"
+        style="background: var(--bg-surface-elevated); padding: 0.8rem; border-radius: var(--radius-sm); margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
         <span>Ready to execute 35 automated test specifications...</span>
         <button class="btn btn-xs btn-primary" onclick="runInBrowserTests()">▶ Run All Tests</button>
       </div>
 
-      <div style="max-height: 48vh; overflow-y: auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.5rem;" id="testResultsContainer">
+      <div
+        style="max-height: 48vh; overflow-y: auto; background: var(--bg-primary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.5rem;"
+        id="testResultsContainer">
         <div style="padding: 1rem; text-align: center; color: var(--text-subtle); font-size: 0.85rem;">
-          Click "Run All Tests" to execute the real internal test suite in-browser across extraction, safety, normalization, conflict detection, and security.
+          Click "Run All Tests" to execute the real internal test suite in-browser across extraction, safety,
+          normalization, conflict detection, and security.
         </div>
       </div>
 
@@ -2016,17 +2172,22 @@
       <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">
         Upload medical records or notes (.txt, .json, .csv, .md, .pdf, .png, .jpg) for instant offline extraction:
       </p>
-      
+
       <div class="form-group">
-        <input type="file" id="fileInput" accept=".txt,.json,.csv,.md,.pdf,.png,.jpg" onchange="handleFileSelected(event)" style="display: none;">
-        <div onclick="document.getElementById('fileInput').click()" style="border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: var(--transition); background: var(--bg-surface-elevated);">
+        <input type="file" id="fileInput" accept=".txt,.json,.csv,.md,.pdf,.png,.jpg"
+          onchange="handleFileSelected(event)" style="display: none;">
+        <div onclick="document.getElementById('fileInput').click()"
+          style="border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 2rem; text-align: center; cursor: pointer; transition: var(--transition); background: var(--bg-surface-elevated);">
           <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">📄</div>
           <div style="font-weight: 700; color: var(--text-main); margin-bottom: 0.25rem;">Click to browse files</div>
-          <div style="font-size: 0.75rem; color: var(--text-subtle);">Direct text, PDF text layers, and local OCR images (Max 10MB)</div>
+          <div style="font-size: 0.75rem; color: var(--text-subtle);">Direct text, PDF text layers, and local OCR images
+            (Max 10MB)</div>
         </div>
       </div>
 
-      <div id="fileNotice" style="font-size: 0.8rem; color: var(--accent-blue); background: var(--accent-blue-subtle); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid rgba(59, 130, 246, 0.25); margin-top: 0.5rem; display: none;"></div>
+      <div id="fileNotice"
+        style="font-size: 0.8rem; color: var(--accent-blue); background: var(--accent-blue-subtle); padding: 0.6rem 0.8rem; border-radius: var(--radius-sm); border: 1px solid rgba(59, 130, 246, 0.25); margin-top: 0.5rem; display: none;">
+      </div>
 
       <div style="display: flex; justify-content: flex-end; margin-top: 1rem;">
         <button type="button" class="btn" onclick="closeUploadModal()">Close</button>
@@ -2035,8 +2196,9 @@
   </div>
 
   <!-- Modal 5: Transcript Review Modal -->
-  <div class="modal-overlay" id="transcriptReviewModal" role="dialog" aria-modal="true" aria-labelledby="transcriptReviewTitle">
-    <div class="modal-container" style="max-width: 650px;">
+  <div class="modal-overlay" id="transcriptReviewModal" role="dialog" aria-modal="true"
+    aria-labelledby="transcriptReviewTitle">
+    <div class="modal-container" style="max-width: min(90vw, 650px);">
       <div class="modal-header">
         <h3 class="modal-title" id="transcriptReviewTitle">📝 Review Extracted Document Text</h3>
         <button class="btn btn-xs" onclick="closeTranscriptReviewModal()" aria-label="Close dialog">✕</button>
@@ -2045,27 +2207,34 @@
         <span id="transcriptSourceBadge" class="badge badge-source">OCR / PDF Extracted</span>
         Inspect and edit the extracted text transcript below to ensure accuracy before clinical review:
       </div>
-      <textarea id="transcriptEditText" class="medical-textarea" style="height: 250px; font-family: monospace; font-size: 0.85rem; margin-bottom: 1rem;"></textarea>
+      <textarea id="transcriptEditText" class="medical-textarea"
+        style="height: 250px; font-family: monospace; font-size: 0.85rem; margin-bottom: 1rem;"></textarea>
       <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
         <button type="button" class="btn" onclick="closeTranscriptReviewModal()">Cancel</button>
-        <button type="button" class="btn btn-primary" onclick="applyReviewedTranscript()">✓ Accept &amp; Load into Editor</button>
+        <button type="button" class="btn btn-primary" onclick="applyReviewedTranscript()">✓ Accept &amp; Load into
+          Editor</button>
       </div>
     </div>
   </div>
 
   <!-- Modal 6: Patient History & SQLite Records Modal -->
-  <div class="modal-overlay" id="patientHistoryModal" role="dialog" aria-modal="true" aria-labelledby="patientHistoryTitle">
-    <div class="modal-container" style="max-width: 750px;">
+  <div class="modal-overlay" id="patientHistoryModal" role="dialog" aria-modal="true"
+    aria-labelledby="patientHistoryTitle">
+    <div class="modal-container" style="max-width: min(90vw, 750px);">
       <div class="modal-header">
         <h3 class="modal-title" id="patientHistoryTitle">📁 Patient Records &amp; Longitudinal History</h3>
         <button class="btn btn-xs" onclick="closePatientHistoryModal()" aria-label="Close dialog">✕</button>
       </div>
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
-        <span style="font-size: 0.8rem; color: var(--text-muted);">Stored records in SQLite persistent storage (`medlens.db`):</span>
-        <button class="btn btn-xs btn-primary" onclick="saveCurrentPatientRecord()">💾 Save Current Patient &amp; Report</button>
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+        <span style="font-size: 0.8rem; color: var(--text-muted);">Stored records in SQLite persistent storage
+          (`medlens.db`):</span>
+        <button class="btn btn-xs btn-primary" onclick="saveCurrentPatientRecord()">💾 Save Current Patient &amp;
+          Report</button>
       </div>
       <div id="patientListContainer" style="max-height: 45vh; overflow-y: auto; margin-bottom: 1rem;">
-        <div style="padding: 1rem; text-align: center; color: var(--text-subtle); font-size: 0.85rem;">Loading stored records...</div>
+        <div style="padding: 1rem; text-align: center; color: var(--text-subtle); font-size: 0.85rem;">Loading stored
+          records...</div>
       </div>
       <div style="display: flex; justify-content: flex-end;">
         <button type="button" class="btn" onclick="closePatientHistoryModal()">Close</button>
@@ -2075,13 +2244,16 @@
 
   <!-- Modal 7: Longitudinal Report Comparison Modal -->
   <div class="modal-overlay" id="comparisonModal" role="dialog" aria-modal="true" aria-labelledby="comparisonTitle">
-    <div class="modal-container" style="max-width: 850px;">
+    <div class="modal-container" style="max-width: min(90vw, 850px);">
       <div class="modal-header">
         <h3 class="modal-title" id="comparisonTitle">📊 Longitudinal Report Comparison</h3>
         <button class="btn btn-xs" onclick="closeComparisonModal()" aria-label="Close dialog">✕</button>
       </div>
-      <div style="background: var(--accent-blue-subtle); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; font-size: 0.78rem; color: var(--accent-blue); margin-bottom: 1rem;">
-        <strong>Factual Clinical Comparison:</strong> MedLens compares documented differences between previous and current clinical records. MedLens does NOT provide clinical prognostic judgments or determine whether changes indicate medical improvement or deterioration.
+      <div
+        style="background: var(--accent-blue-subtle); border: 1px solid rgba(59, 130, 246, 0.25); border-radius: var(--radius-sm); padding: 0.6rem 0.8rem; font-size: 0.78rem; color: var(--accent-blue); margin-bottom: 1rem;">
+        <strong>Factual Clinical Comparison:</strong> MedLens compares documented differences between previous and
+        current clinical records. MedLens does NOT provide clinical prognostic judgments or determine whether changes
+        indicate medical improvement or deterioration.
       </div>
       <div id="comparisonContent" style="max-height: 50vh; overflow-y: auto;">
         <!-- Comparison table populated dynamically -->
@@ -2202,14 +2374,14 @@
     const MedLensNormalizer = {
       // Unit Blacklist: lab and clinical units that must never be treated as drug names
       UNIT_BLACKLIST: new Set([
-        "mg/dl", "ml/min", "ml/mi", "g/dl", "u/l", "/cumm", "mmhg", "bpm", "%", 
+        "mg/dl", "ml/min", "ml/mi", "g/dl", "u/l", "/cumm", "mmhg", "bpm", "%",
         "mg", "ml", "units", "lakhs", "meq/l", "mmol/l", "g/l", "iu", "mcg", "puffs", "tablets", "caps",
         "mm/hr", "hr", "mg/l", "esr", "crp"
       ]),
 
       // Known Allergen Blacklist: items that must not be parsed as medications
       ALLERGEN_BLACKLIST: new Set([
-        "sulfa", "sulfa drugs", "sulfonamide", "sulfonamides", "shellfish", "peanuts", 
+        "sulfa", "sulfa drugs", "sulfonamide", "sulfonamides", "shellfish", "peanuts",
         "penicillin", "latex", "egg", "eggs", "seafood", "iodine", "nuts", "dairy", "soy"
       ]),
 
@@ -2278,10 +2450,10 @@
 
         // If no reference range in source document, MedLens must NEVER invent one
         if (!refRangeStr || refRangeStr.trim().length === 0 || /none|not provided/i.test(refRangeStr)) {
-          return { 
-            status: "Source Range Not Provided", 
+          return {
+            status: "Source Range Not Provided",
             isSourceProvided: false,
-            assessmentNote: "Cannot assess against source-provided reference range" 
+            assessmentNote: "Cannot assess against source-provided reference range"
           };
         }
 
@@ -2374,7 +2546,7 @@
     // A. MEDICATIONS PARSER
     function parseMedications(text) {
       if (!text || text.trim().length === 0) return [];
-      
+
       const sanitizedText = text.replace(/\.{2,}/g, ' ');
       const lines = sanitizedText.split(/\r?\n|;|(?:\.\s+)/);
       const extracted = [];
@@ -2742,7 +2914,7 @@
 
         if (/^[\d]+\.\s+/.test(trimmed) || /^[\-\•\*]\s+/.test(trimmed) || actionVerbsRegex.test(trimmed)) {
           const cleanLine = trimmed.replace(/^[\d\-\•\*\.]+\s*/, '').trim();
-          
+
           if (cleanLine.length > 5 && !/^(?:Plan|Assessment|Diagnosis):?$/i.test(cleanLine)) {
             // Check if ANY medication in appState.parsedData.medications has a sourceText that includes the same drug name AND the same dosage/change verb
             const currentMeds = (typeof appState !== 'undefined' && appState.parsedData && Array.isArray(appState.parsedData.medications))
@@ -2839,7 +3011,7 @@
 
       // 1. Allergy Conflict (User says NKDA, but report lists allergies)
       const userSaysNoAllergies = /no known|nkda|none|nil|no allergies/i.test(userAllergies) || userAllergies.trim().length === 0;
-      const extractedReportAllergies = (extractedData.allergies || []).filter(a => 
+      const extractedReportAllergies = (extractedData.allergies || []).filter(a =>
         a.source.includes("Medical Report") || a.source.includes("AI Extracted")
       );
 
@@ -3370,8 +3542,8 @@
 
       container.innerHTML = meds.map(m => {
         const isVerified = m.verificationStatus && m.verificationStatus.includes("Verified");
-        const statusBadge = isVerified 
-          ? '<span class="badge badge-verified">✓ Verified</span>' 
+        const statusBadge = isVerified
+          ? '<span class="badge badge-verified">✓ Verified</span>'
           : '<span class="badge badge-unverified">Needs Review</span>';
 
         return `
@@ -3437,7 +3609,7 @@
       }).join('');
     }
 
-    
+
     /* ==========================================================================
        MODULE L: LAB RANGE VISUALIZATION
        ========================================================================== */
@@ -3928,8 +4100,8 @@
         document.getElementById('pAllergies').value = "Penicillin";
         document.getElementById('pMedications').value = "Paracetamol 500mg as needed";
 
-        document.getElementById('reportText').value = 
-`CLINICAL VISIT NOTE & LAB REPORT - 05/09/2026
+        document.getElementById('reportText').value =
+          `CLINICAL VISIT NOTE & LAB REPORT - 05/09/2026
 
 PATIENT SUMMARY:
 45yo male presenting with 2 weeks of fatigue.
@@ -3968,8 +4140,8 @@ SOURCE-DOCUMENT INSTRUCTIONS:
         document.getElementById('pAllergies').value = "No Known Drug Allergies";
         document.getElementById('pMedications').value = "Metformin 500mg BID";
 
-        document.getElementById('reportText').value = 
-`ENDOCRINOLOGY PROGRESS NOTE
+        document.getElementById('reportText').value =
+          `ENDOCRINOLOGY PROGRESS NOTE
 
 Patient: 62-year-old female with long-standing T2DM.
 
@@ -4003,8 +4175,8 @@ SOURCE-DOCUMENT INSTRUCTIONS:
         document.getElementById('pAllergies').value = "No Known Drug Allergies";
         document.getElementById('pMedications').value = "Ibuprofen 400mg";
 
-        document.getElementById('reportText').value = 
-`RHEUMATOLOGY CONSULTATION NOTE
+        document.getElementById('reportText').value =
+          `RHEUMATOLOGY CONSULTATION NOTE
 
 Patient reports being allergic to Sulfa drugs (causes severe rash and breathing difficulty) and allergic to shellfish (anaphylaxis risk).
 
@@ -4030,8 +4202,8 @@ SOURCE-DOCUMENT INSTRUCTIONS:
         document.getElementById('pAllergies').value = "No Known Allergies";
         document.getElementById('pMedications').value = "Levothyroxine 50mcg";
 
-        document.getElementById('reportText').value = 
-`EXTERNAL CLINIC LAB TRANSCRIPT (NO REFERENCE RANGES PROVIDED)
+        document.getElementById('reportText').value =
+          `EXTERNAL CLINIC LAB TRANSCRIPT (NO REFERENCE RANGES PROVIDED)
 
 Patient: Elena Rostova, 38yo female.
 
@@ -4058,8 +4230,8 @@ SOURCE-DOCUMENT INSTRUCTIONS:
         document.getElementById('pAllergies').value = "No Known Drug Allergies";
         document.getElementById('pMedications').value = "Metformin 500mg BID, Lisinopril 10mg OD";
 
-        document.getElementById('reportText').value = 
-`PRIMARY CARE NOTE - REGIMEN ADJUSTMENT
+        document.getElementById('reportText').value =
+          `PRIMARY CARE NOTE - REGIMEN ADJUSTMENT
 
 Metformin 500mg BID... INCREASED to 1000mg 1-0-1.
 Lisinopril 10mg OD... INCREASED to 20mg 1-0-0.
@@ -4084,8 +4256,8 @@ SOURCE-DOCUMENT INSTRUCTIONS:
         document.getElementById('pAllergies').value = "Sulfa drugs";
         document.getElementById('pMedications').value = "Furosemide 20mg, Carvedilol 12.5mg";
 
-        document.getElementById('reportText').value = 
-`PT 71 YO MALE PRESENTED W/ SOB & MILD BILATERAL ANKLE EDEMA.
+        document.getElementById('reportText').value =
+          `PT 71 YO MALE PRESENTED W/ SOB & MILD BILATERAL ANKLE EDEMA.
 KNOWN HX OF CHF, HTN.
 ALLERGIC TO SULFA (HIVES).
 CURRENT ORDERS:
@@ -4572,7 +4744,7 @@ PLAN:
       it("27. Malformed AI response resilience", () => {
         const malformedAI = "{ invalid json string ";
         let caught = false;
-        try { JSON.parse(malformedAI); } catch(e) { caught = true; }
+        try { JSON.parse(malformedAI); } catch (e) { caught = true; }
         assert(caught, "Failed to trap malformed AI response");
       });
 
@@ -4698,7 +4870,7 @@ PLAN:
       checkBackendStatus();
       loadCase(1);
     });
-  
+
     /* ==========================================================================
        MODULE 18: REAL AI INTEGRATION & BACKEND CONNECTIVITY (Features 1, 2)
        ========================================================================== */
@@ -4934,7 +5106,7 @@ PLAN:
 
     function renderLongitudinalComparison() {
       const container = document.getElementById('comparisonContent');
-      
+
       const currentLabs = (appState && appState.parsedData && appState.parsedData.labResults) || [];
       const currentMeds = (appState && appState.parsedData && appState.parsedData.medications) || [];
 
@@ -4949,7 +5121,7 @@ PLAN:
 
       // 1. Try to load the actual previous report from localStorage key 'medlens_patients_backup' for the currently loaded patient name
       const currentPatientName = ((document.getElementById('pName') && document.getElementById('pName').value) || (appState.patientProfile && appState.patientProfile.name) || '').trim();
-      
+
       let localPats = [];
       try {
         localPats = JSON.parse(localStorage.getItem('medlens_patients_backup') || '[]');
@@ -5090,7 +5262,7 @@ PLAN:
       container.innerHTML = html;
     }
 
-  
+
     /* ==========================================================================
        MODULE 19: CLINICAL DASHBOARD UI & THEME CONTROLS
        ========================================================================== */
@@ -5257,4 +5429,5 @@ PLAN:
 
   </script>
 </body>
+
 </html>
