@@ -1266,7 +1266,115 @@
       }
     }
 
-  </style>
+  
+    /* Clinical Alerts Banner (Module K) */
+    .clinical-alerts-banner {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.65rem 1rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      margin-bottom: 1.25rem;
+      box-shadow: var(--card-shadow);
+      transition: var(--transition);
+    }
+
+    .alert-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      line-height: 1.3;
+    }
+
+    .alert-chip-red {
+      background: rgba(239, 68, 68, 0.12);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+
+    .alert-chip-yellow {
+      background: rgba(245, 158, 11, 0.12);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .alert-chip-orange {
+      background: rgba(249, 115, 22, 0.12);
+      color: #f97316;
+      border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
+    .alert-chip-blue {
+      background: rgba(59, 130, 246, 0.12);
+      color: #3b82f6;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .alert-chip-green {
+      background: rgba(16, 185, 129, 0.12);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    /* Lab Range Visualization (Module L) */
+    .lab-range-viz {
+      min-width: 100px;
+      max-width: 130px;
+      display: inline-flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .range-bar-track {
+      position: relative;
+      height: 8px;
+      background: var(--border-color);
+      border-radius: 4px;
+      overflow: visible;
+      margin: 4px 0;
+    }
+
+    .range-bar-normal-zone {
+      position: absolute;
+      height: 100%;
+      background: rgba(16, 185, 129, 0.4);
+      border-radius: 3px;
+    }
+
+    .range-bar-marker {
+      position: absolute;
+      top: -3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      border: 2px solid #ffffff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      z-index: 2;
+    }
+
+    .range-bar-marker.marker-normal {
+      background: #10b981;
+    }
+
+    .range-bar-marker.marker-abnormal {
+      background: #ef4444;
+    }
+
+    .range-bar-norange {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-style: italic;
+      white-space: nowrap;
+    }
+</style>
 </head>
 <body>
 
@@ -1425,6 +1533,11 @@
         <div class="kpi-meta"><span class="badge badge-verified">100% Client-Side</span></div>
       </div>
     </section>
+
+    <!-- Clinical Alerts Smart Banner (Module K) -->
+    <div class="clinical-alerts-banner" id="clinicalAlertsBanner" aria-live="polite">
+      <span class="alert-chip alert-chip-green">✅ All Clear — No Critical Clinical Alerts</span>
+    </div>
 
     <!-- Potential Clinical Conflicts Section -->
     <div id="conflictSectionContainer" class="dashboard-card-section">
@@ -1701,6 +1814,7 @@
                   <th>Result</th>
                   <th>Unit</th>
                   <th>Reference Range</th>
+                  <th>Range Viz</th>
                   <th>Clinical Status</th>
                   <th>Confidence</th>
                   <th style="text-align: right;">Actions</th>
@@ -1734,7 +1848,7 @@
   <footer role="contentinfo">
     <div class="safety-notice">
       <span>⚕️</span>
-      <span><strong>Clinical Safety &amp; Privacy Notice:</strong> MedLens is an assistive record organization and review tool. It does not provide diagnoses or treatment directives. All processing is strictly local to your browser; no patient data is transmitted to external servers.</span>
+      <span><strong>Clinical Safety &amp; Privacy Notice:</strong> MedLens organizes information from provided records for review. It does not diagnose conditions, prescribe treatment, or replace clinical judgment. All processing is strictly local to your browser; no patient data is transmitted to external servers. Diagnostic tests are classified against source-stated ranges only.</span>
     </div>
   </footer>
 
@@ -2904,6 +3018,10 @@
       if (kpiTotalBadge) kpiTotalBadge.textContent = `${allItems.length} fields extracted`;
       const kpiReviewBadge = document.getElementById('metricNeedsReviewBadge');
       if (kpiReviewBadge) kpiReviewBadge.textContent = `${allItems.length - verified} need review`;
+
+      if (typeof updateClinicalAlerts === 'function') {
+        updateClinicalAlerts();
+      }
     }
 
     /* ==========================================================================
@@ -3179,6 +3297,242 @@
       }).join('');
     }
 
+    
+    /* ==========================================================================
+       MODULE L: LAB RANGE VISUALIZATION
+       ========================================================================== */
+    function renderLabRangeViz(l) {
+      if (!l.isSourceRangeProvided || !l.refRange || l.refRange.toLowerCase().includes('not provided') || l.refRange.toLowerCase().includes('not assessed')) {
+        return '<span class="range-bar-norange">No source range</span>';
+      }
+
+      const rawVal = String(l.value || '').replace(/,/g, '').trim();
+      const numVal = parseFloat(rawVal);
+      if (isNaN(numVal)) {
+        return '<span class="range-bar-norange">Multi-part</span>';
+      }
+
+      const isAbnormal = l.status && l.status.includes('ABNORMAL');
+      const ref = l.refRange.trim();
+
+      // Range: min - max
+      const rangeMatch = ref.match(/([0-9]+(?:,[0-9]+)*(?:\.[0-9]+)?)\s*[-–]\s*([0-9]+(?:,[0-9]+)*(?:\.[0-9]+)?)/);
+      if (rangeMatch) {
+        const min = parseFloat(rangeMatch[1].replace(/,/g, ''));
+        const max = parseFloat(rangeMatch[2].replace(/,/g, ''));
+        if (!isNaN(min) && !isNaN(max) && max > min) {
+          let markerPos;
+          if (numVal < min) {
+            markerPos = Math.max(5, (numVal / min) * 20);
+          } else if (numVal > max) {
+            const excess = (numVal - max) / (max || 1);
+            markerPos = Math.min(95, 80 + Math.min(15, excess * 15));
+          } else {
+            markerPos = 20 + ((numVal - min) / (max - min)) * 60;
+          }
+          return `
+            <div class="lab-range-viz" title="Reference range: ${min} - ${max} | Value: ${numVal}">
+              <div class="range-bar-track">
+                <div class="range-bar-normal-zone" style="left: 20%; width: 60%;"></div>
+                <div class="range-bar-marker ${isAbnormal ? 'marker-abnormal' : 'marker-normal'}" style="left: ${markerPos.toFixed(1)}%;"></div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // Range: < max
+      const ltMatch = ref.match(/<\s*([0-9]+(?:,[0-9]+)*(?:\.[0-9]+)?)/);
+      if (ltMatch) {
+        const max = parseFloat(ltMatch[1].replace(/,/g, ''));
+        if (!isNaN(max) && max > 0) {
+          let markerPos;
+          if (numVal <= max) {
+            markerPos = Math.max(5, (numVal / max) * 65);
+          } else {
+            const excess = (numVal - max) / max;
+            markerPos = Math.min(95, 65 + Math.min(30, excess * 30));
+          }
+          return `
+            <div class="lab-range-viz" title="Reference range: < ${max} | Value: ${numVal}">
+              <div class="range-bar-track">
+                <div class="range-bar-normal-zone" style="left: 0%; width: 65%;"></div>
+                <div class="range-bar-marker ${isAbnormal ? 'marker-abnormal' : 'marker-normal'}" style="left: ${markerPos.toFixed(1)}%;"></div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // Range: > min
+      const gtMatch = ref.match(/>\s*([0-9]+(?:,[0-9]+)*(?:\.[0-9]+)?)/);
+      if (gtMatch) {
+        const min = parseFloat(gtMatch[1].replace(/,/g, ''));
+        if (!isNaN(min) && min > 0) {
+          let markerPos;
+          if (numVal >= min) {
+            markerPos = Math.min(95, 35 + ((numVal - min) / min) * 40);
+          } else {
+            markerPos = Math.max(5, (numVal / min) * 35);
+          }
+          return `
+            <div class="lab-range-viz" title="Reference range: > ${min} | Value: ${numVal}">
+              <div class="range-bar-track">
+                <div class="range-bar-normal-zone" style="left: 35%; width: 65%;"></div>
+                <div class="range-bar-marker ${isAbnormal ? 'marker-abnormal' : 'marker-normal'}" style="left: ${markerPos.toFixed(1)}%;"></div>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      return `<span class="range-bar-norange">${MedLensSecurity.escapeHtml(ref)}</span>`;
+    }
+
+    /* ==========================================================================
+       MODULE K: CLINICAL ALERTS SMART BANNER
+       ========================================================================== */
+    function updateClinicalAlerts() {
+      const container = document.getElementById('clinicalAlertsBanner');
+      if (!container) return;
+
+      const d = appState.parsedData;
+      const abnormalCount = d.labResults.filter(l => l.status && l.status.includes('ABNORMAL')).length;
+      const missingRangeCount = d.labResults.filter(l => !l.isSourceRangeProvided || (l.status && (l.status.includes('range not provided') || l.status.includes('Cannot assess')))).length;
+      const conflictCount = (appState.conflicts || []).length;
+      const allItems = [...d.medications, ...d.allergies, ...d.labResults, ...d.nextSteps];
+      const awaitingVerificationCount = allItems.filter(x => !x.verificationStatus || x.verificationStatus === 'Unverified').length;
+
+      const chips = [];
+      if (abnormalCount > 0) {
+        chips.push(`<span class="alert-chip alert-chip-red">🔴 ${abnormalCount} Abnormal Lab${abnormalCount > 1 ? 's' : ''}</span>`);
+      }
+      if (missingRangeCount > 0) {
+        chips.push(`<span class="alert-chip alert-chip-yellow">⚠️ ${missingRangeCount} Missing Range${missingRangeCount > 1 ? 's' : ''}</span>`);
+      }
+      if (conflictCount > 0) {
+        chips.push(`<span class="alert-chip alert-chip-orange">⚡ ${conflictCount} Conflict${conflictCount > 1 ? 's' : ''}</span>`);
+      }
+      if (awaitingVerificationCount > 0) {
+        chips.push(`<span class="alert-chip alert-chip-blue">🔍 ${awaitingVerificationCount} Awaiting Review</span>`);
+      }
+
+      if (chips.length === 0) {
+        container.innerHTML = `<span class="alert-chip alert-chip-green">✅ All Clear — No Critical Clinical Alerts</span>`;
+      } else {
+        container.innerHTML = `<strong style="font-size: 0.8rem; color: var(--text-muted); margin-right: 0.25rem;">Clinical Alerts:</strong> ` + chips.join(' ');
+      }
+    }
+
+    /* ==========================================================================
+       MODULE O: FHIR R4 JSON EXPORT
+       ========================================================================== */
+    function copyAsFHIR() {
+      const p = appState.patientProfile;
+      const d = appState.parsedData;
+      const safeName = appState.privacyMode ? "[REDACTED]" : (p.name || "Unknown Patient");
+      const bundleId = 'bundle-' + Date.now();
+
+      const entries = [];
+
+      // Patient resource
+      entries.push({
+        fullUrl: `urn:uuid:${bundleId}-patient`,
+        resource: {
+          resourceType: "Patient",
+          id: "pat-1",
+          name: [{ use: "official", text: safeName }],
+          gender: p.sex ? p.sex.toLowerCase() : "unknown"
+        }
+      });
+
+      // Observation resources for labs
+      d.labResults.forEach((lab, idx) => {
+        const numVal = parseFloat(String(lab.value).replace(/,/g, ''));
+        const obs = {
+          resourceType: "Observation",
+          id: `obs-${idx + 1}`,
+          status: "final",
+          code: {
+            text: lab.testName,
+            coding: [{ display: lab.normalizedName || lab.testName }]
+          },
+          interpretation: [{ text: lab.status }]
+        };
+        if (!isNaN(numVal)) {
+          obs.valueQuantity = { value: numVal, unit: lab.unit };
+        } else {
+          obs.valueString = String(lab.value);
+        }
+        if (lab.refRange && lab.isSourceRangeProvided) {
+          obs.referenceRange = [{ text: lab.refRange }];
+        }
+        entries.push({ fullUrl: `urn:uuid:${bundleId}-obs-${idx + 1}`, resource: obs });
+      });
+
+      // MedicationRequest resources
+      d.medications.forEach((med, idx) => {
+        entries.push({
+          fullUrl: `urn:uuid:${bundleId}-med-${idx + 1}`,
+          resource: {
+            resourceType: "MedicationRequest",
+            id: `med-${idx + 1}`,
+            status: "active",
+            intent: "order",
+            medicationCodeableConcept: { text: med.name },
+            dosageInstruction: [{ text: `${med.dosage} ${med.frequency}` }]
+          }
+        });
+      });
+
+      // AllergyIntolerance resources
+      d.allergies.forEach((allergy, idx) => {
+        entries.push({
+          fullUrl: `urn:uuid:${bundleId}-alg-${idx + 1}`,
+          resource: {
+            resourceType: "AllergyIntolerance",
+            id: `alg-${idx + 1}`,
+            clinicalStatus: { coding: [{ code: "active" }] },
+            verificationStatus: { coding: [{ code: "confirmed" }] },
+            code: { text: allergy.substance },
+            reaction: [{ manifestation: [{ text: allergy.reaction || "Unspecified reaction" }] }]
+          }
+        });
+      });
+
+      // CarePlan resource for instructions
+      if (d.nextSteps.length > 0) {
+        entries.push({
+          fullUrl: `urn:uuid:${bundleId}-careplan`,
+          resource: {
+            resourceType: "CarePlan",
+            id: "plan-1",
+            status: "active",
+            intent: "plan",
+            title: "Documented Source Instructions",
+            activity: d.nextSteps.map((step, sIdx) => ({
+              detail: { description: step.text }
+            }))
+          }
+        });
+      }
+
+      const fhirBundle = {
+        resourceType: "Bundle",
+        id: bundleId,
+        type: "collection",
+        timestamp: new Date().toISOString(),
+        entry: entries
+      };
+
+      const jsonText = JSON.stringify(fhirBundle, null, 2);
+      navigator.clipboard.writeText(jsonText).then(() => {
+        showToast("FHIR R4 JSON copied to clipboard!");
+      }).catch(() => {
+        showToast("Unable to copy to clipboard");
+      });
+    }
+
     function renderLabsDisplay() {
       const container = document.getElementById('labsDisplay');
       const badge = document.getElementById('labsCountBadge');
@@ -3188,7 +3542,7 @@
       if (!container) return;
 
       if (labs.length === 0) {
-        container.innerHTML = `<tr><td colspan="7" class="table-empty-cell">No diagnostic lab values found in report text.</td></tr>`;
+        container.innerHTML = `<tr><td colspan="8" class="table-empty-cell">No diagnostic lab values found in report text.</td></tr>`;
         return;
       }
 
@@ -3218,6 +3572,7 @@
             <td><strong class="cell-val ${isAbnormal ? 'cell-abnormal' : ''}">${valDisplay}</strong></td>
             <td><span class="cell-val">${MedLensSecurity.escapeHtml(l.unit || 'units')}</span></td>
             <td><span class="cell-val">${MedLensSecurity.escapeHtml(l.refRange || 'Not provided in source')}</span></td>
+            <td>${renderLabRangeViz(l)}</td>
             <td><span class="badge ${statusBadgeClass}">${MedLensSecurity.escapeHtml(statusLabel)}</span></td>
             <td>${renderConfidenceBadge(l.confidence)}</td>
             <td style="text-align: right; white-space: nowrap;">
@@ -4180,11 +4535,19 @@ PLAN:
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeEditModal();
+        if (typeof closeProvenanceModal === 'function') closeProvenanceModal();
         closeTestModal();
         closeUploadModal();
         closeTranscriptReviewModal();
         closePatientHistoryModal();
         closeComparisonModal();
+        if (typeof closeSettingsModal === 'function') closeSettingsModal();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        triggerAutoParse();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        saveRecord();
       }
     });
 
