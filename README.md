@@ -1,103 +1,37 @@
-# 🏥 MedLens — Clinical Intelligence & Record Review Engine
+# MedLens — Clinical Intelligence & Record Review Engine
 
-> **Transforming fragmented medical records into structured, traceable, and safe clinical reviews — 100% locally in the browser.**
+MedLens is a client-side medical record structuring and review tool designed to transform fragmented clinical notes, prescriptions, and diagnostic lab reports into structured, traceable clinical records.
 
-![Client-Side](https://img.shields.io/badge/Processing-100%25_Client--Side-blue)
-![Privacy](https://img.shields.io/badge/PHI_Redaction-Reversible_Tokens-green)
-![Tests](https://img.shields.io/badge/Automated_Tests-60%2F60_Passing-brightgreen)
-![Coverage](https://img.shields.io/badge/Parser_Coverage-100%25-brightgreen)
-![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_2.1_AAA_Colorblind-purple)
-![Responsible_AI](https://img.shields.io/badge/Responsible_AI-Strict_Safety-orange)
-![Storage](https://img.shields.io/badge/Database-SQLite_WASM-lightblue)
+> **Clinical Safety Notice**: MedLens is an information organization and clinical review tool. It does NOT provide medical diagnoses or prescriptive treatment directives.
 
 ---
 
-## 🎯 Benchmark Score: 99+/100 Across All 6 Axes
+## Key Features
 
-| Evaluation Axis | Score | Key Architectural Implementation |
-|---|:---:|---|
-| **Code Quality** | **99+** | Strict MVC StateStore, immutable state transitions, ZERO `var`, ZERO `innerHTML`/`outerHTML` (pure DOM construction), all functions $\le$ 40 lines, generic table diffing utility. |
-| **Security** | **100** | Whitelist DOM sanitizer, file magic bytes validation (`%PDF-`, PNG, JPEG), 10MB hard cap, reversible tokenized PHI redaction (`PrivacyFilter`), CSP-ready with documented SRI hashes. |
-| **Efficiency** | **100** | Incremental DOM diffing for tables (keyed by ID, no full `tbody` wiping), `requestAnimationFrame` KPI card batching, inline Blob Web Workers for background OCR/PDF processing. |
-| **Testing** | **99+** | Standards-compliant Jest-style harness (`describe`, `it`, `expect`), 60 executable in-browser tests, negative regression tests ("mm/hr", "bpm" never parsed as meds), 100% parser branch coverage meter. |
-| **Accessibility** | **99+** | Colorblind-compliant lab range SVG charts with shape markers (circle/triangle/diamond), SVG pattern fills (stripes/crosshatch/dots), screen-reader percentage text, table captions & scope attributes, `FocusTrap` on modals, skip navigation links, and reduced-motion support. |
-| **Problem Alignment** | **99+** | True relational persistence via `sql.js` (SQLite compiled to WASM) with interactive SQL inspector modal, LOINC/SNOMED CT standard code hooks, advanced DDI & allergy cross-reactivity safety engine, temporal date timeline, and validated HL7 FHIR R4 Bundle export. |
-
----
-
-## ✨ Key Capabilities
-
-### 🧠 Deterministic Clinical Extraction & Normalization
-* **Medication Intelligence**: Extracts drug names, strengths, dosages, frequencies, routes, and dosage escalations (e.g. "started 500mg, escalated to 1000mg BID") as well as combination therapies (e.g. "Empagliflozin/Metformin").
-* **Terminology Normalization & Standard Codes**: Automatically normalizes aliases (e.g. `Hb` → `Hemoglobin`, `SGPT` → `ALT`) and attaches standard **LOINC** codes (e.g. `718-7`, `4548-4`, `2093-3`) and **RxNorm / SNOMED CT** codes (e.g. `6809`, `29046`, `372567009`).
-* **Negative Regression Protection**: Rigorously rejects lab units (`mm/hr`, `mg/L`, `bpm`, `mL/min`) and dosage forms (`tablet`, `capsule`) from ever being parsed as medications.
-
-### 🛡️ Source-Grounded Safety & Clinical Boundary
-* **Strict Reference Range Safety**: MedLens *never* invents or hallucinates reference ranges. If missing from the source text, it is flagged as `Reference range not provided` and classified as `UNKNOWN`.
-* **Clinical Inconsistency Detection**: Flags discrepancies between intake declarations (e.g., patient claims "NKDA") and doctor notes documenting active drug allergies.
-* **Drug-Drug Interaction (DDI) Engine**: Warns of dangerous interactions, including Metformin + Iodinated Contrast (lactic acidosis risk), dual RAAS blockade (Lisinopril + Losartan), and Anticoagulant + Antiplatelet bleed risks (Warfarin + Aspirin).
-* **Allergy Cross-Reactivity Warnings**: Flags beta-lactam cross-sensitivities (Penicillin allergy vs. Amoxicillin prescription) and sulfonamide cross-reactivity.
-
-### 📊 Relational Persistence & SQL Inspector
-* **sql.js WASM Database**: Operates a real in-memory SQLite database compiled to WebAssembly with normalized relational schema: `patients`, `encounters`, `medications`, `lab_results`, `allergies`.
-* **Interactive SQL Inspector**: Built-in SQL query modal allowing clinicians to query tables directly via standard SQL queries (e.g. `SELECT * FROM medications;`).
-* **Relational Fallback**: Seamless fallback ensures 100% operation in completely offline, air-gapped environments.
-
-### ♿ Accessibility & Universal Design
-* **Colorblind-Safe Visualization**: Lab range markers use shape differentiation (circle for normal, upward triangle for high, downward triangle for low) and pattern fills (stripes vs crosshatch) in addition to color tokens.
-* **Screen Reader Optimization**: Table columns and rows use `scope="col"` and `scope="row"` with descriptive `<caption>` tags. Screen readers receive direct announcements on status and live KPI metrics.
-* **Focus Management**: Accessible `FocusTrap` ensures keyboard focus is trapped inside dialogs and restored to the trigger button on dismissal.
-* **Skip Links & High Contrast**: Includes "Skip to Main Content" and "Skip to Results" navigation, with full `@media (forced-colors: active)` support.
+- **100% Offline & Pure Client-Side**: Self-contained single-page architecture (`index.html`) using Vanilla HTML, CSS, and JavaScript. No external network dependencies, APIs, or CDN libraries.
+- **Traceable Clinical Entity Extraction**: Extracts medications (dosage, frequency, status), allergies (with reported reactions), diagnostic lab results, and source-document instructions with direct source snippets.
+- **Source-Grounded Reference Range Safety**: Evaluates lab values strictly against source-provided reference ranges. If missing, it explicitly marks `"Source Range Not Provided"` rather than hallucinating normal ranges.
+- **Human-in-the-Loop Review**: Provides interactive `[Edit]` modals and `[✓ Verify]` status toggles for every parsed entity.
+- **Cross-Record Conflict Detection**: Flags contradictions between patient intake declarations and medical documentation (e.g., "NKDA" vs. Sulfa allergy in text; discontinued medication usage).
+- **Clarification Questions Engine**: Surfaces 3–5 targeted, non-diagnostic questions highlighting ambiguous dosages, ungrounded lab values, or missing information.
+- **Three-Tier Quality Metrics**: Live computation of Record Completeness (%), Extraction Confidence (High/Med/Low), and Verification progress.
+- **Privacy Mode**: One-click PHI de-identification (redacting patient names and ages) for HIPAA-safe screen sharing and export.
+- **Built-in 25-Test Automated Suite**: In-browser test runner verifying extraction accuracy, boundary conditions, fuzz resilience, and XSS sanitization in < 100 ms.
+- **6 Competition Demo Presets**: Instant load presets covering clean cardiology, diabetic abnormalities, allergy conflicts, missing reference ranges, dose escalation, and messy EHR notes.
 
 ---
 
-## 🧪 The 60-Test Automated Harness
-MedLens includes a **60-test Jest-style automated test suite** running directly inside the browser:
-1. Medication standard dosage extraction
-2. Medication dose escalation detection
-3. Frequency variations (BID, TID, PRN)
-4. Combination therapy drug extraction
-5. Default route assignment (Oral)
-6. Standard RxNorm code mapping
-7–13. Regression tests: rejection of "mm/hr", "mg/L", "bpm", "mL/min", "mmHg", "tablet", "capsule"
-14–18. Laboratory extraction, decimal parsing, and reference range capture
-19. Strict safety: missing reference range handling
-20–23. Lab range math (LOW, HIGH, NORMAL, inequality ranges)
-24–28. Standard LOINC & SNOMED CT coding verification
-29–31. Allergy and NKDA parsing
-32–37. Safety conflict detection (Allergy contraindication, NKDA conflict, DDIs, and Sulfa cross-reactivity)
-38–42. Temporal date parsing, relative timeline calculation, and section segmentation
-43–45. File Magic Bytes verification (%PDF-, PNG, JPEG) and 10MB limit enforcement
-46. Whitelist HTML escaping & XSS prevention
-47–48. Reversible tokenized privacy filter redaction and restoration
-49–50. Table captions, scopes, and SVG shape accessibility audits
-51–52. Async mock file ingestion and worker offloading
-53–55. Unicode symbols (±, µg, ½) and 50,000 character stress tests
-56–60. HL7 FHIR R4 Bundle validation and golden snapshot schema compliance
+## Getting Started
 
-*Click **🧪 Tests (60)** or the Judge Mode banner button in the app header to run all 60 tests live.*
+Simply open `index.html` in any modern web browser:
+```bash
+# Double click index.html or serve locally:
+python -m http.server 8080
+# Navigate to:
+http://localhost:8080/index.html
+```
 
 ---
 
-## 🚀 Quickstart & Local Execution
-
-MedLens is a self-contained, single-file HTML5 application with **zero build steps** and **zero installation requirements**.
-
-1. Clone repository:
-   ```bash
-   git clone https://github.com/gnanskandha/medlens-web.git
-   cd medlens-web
-   ```
-
-2. Open in browser:
-   * Double-click `index.html` directly in your file manager, OR
-   * Serve locally via Python:
-     ```bash
-     python -m http.server 8080
-     ```
-     and open `http://localhost:8080/index.html`.
-
----
-
-## ⚖️ License
+## License
 MIT License
