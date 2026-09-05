@@ -1374,7 +1374,74 @@
       font-style: italic;
       white-space: nowrap;
     }
+
+    /* Test Results & Data Tables (Item 5) */
+    .test-result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.55rem 0.85rem;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.85rem;
+    }
+    .test-result-row:last-child {
+      border-bottom: none;
+    }
+    .test-pass {
+      color: #10b981;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .test-fail {
+      color: #ef4444;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin: 0.5rem 0;
+    }
+    .data-table th {
+      background: var(--bg-surface-elevated);
+      color: var(--text-muted);
+      padding: 0.6rem 0.75rem;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .data-table td {
+      padding: 0.6rem 0.75rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+    .data-table tbody tr:hover {
+      background: var(--bg-surface-elevated);
+    }
+
+    /* Privacy Mode CSS (Item 6) */
+    body.privacy-mode .redact-val,
+    .privacy-mode .redact-val {
+      background: var(--bg-surface-elevated);
+      color: var(--text-muted);
+      padding: 0.15rem 0.4rem;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+      user-select: none;
+      border: 1px dashed var(--border-color);
+    }
 </style>
+  <!-- PDF.js & Tesseract.js (Client-Side Document Parsing & OCR) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://unpkg.com/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
 </head>
 <body>
 
@@ -2034,6 +2101,79 @@
 
   <!-- JavaScript Application Engine -->
   <script>
+    /* ==========================================================================
+       MOCK IN-MEMORY BACKEND & LOCAL STORAGE PERSISTENCE (Items 2, 3, 4)
+       ========================================================================== */
+    const MOCK_DB = {
+      getPatients() {
+        try {
+          const v2 = localStorage.getItem('medlens_patients_v2');
+          if (v2) return JSON.parse(v2);
+          const backup = localStorage.getItem('medlens_patients_backup');
+          return backup ? JSON.parse(backup) : [];
+        } catch (e) {
+          return [];
+        }
+      },
+      savePatient(payload, reportText, parsedData, verificationMetrics) {
+        const list = this.getPatients();
+        const id = payload.id || ('pat_' + Date.now());
+        const existingIdx = list.findIndex(p => p.id === id);
+        const newRecord = {
+          id,
+          ...payload,
+          report_text: reportText || '',
+          parsed_data: parsedData || null,
+          verification_metrics: verificationMetrics || null,
+          report_count: 1,
+          updated_at: new Date().toISOString()
+        };
+        if (existingIdx >= 0) {
+          list[existingIdx] = newRecord;
+        } else {
+          list.unshift(newRecord);
+        }
+        try {
+          localStorage.setItem('medlens_patients_v2', JSON.stringify(list));
+          localStorage.setItem('medlens_patients_backup', JSON.stringify(list));
+        } catch (e) {
+          console.warn('MOCK_DB save error:', e);
+        }
+        return newRecord;
+      },
+      getPatient(id) {
+        const list = this.getPatients();
+        return list.find(p => p.id === id) || null;
+      },
+      deletePatient(id) {
+        let list = this.getPatients();
+        list = list.filter(p => p.id !== id);
+        try {
+          localStorage.setItem('medlens_patients_v2', JSON.stringify(list));
+          localStorage.setItem('medlens_patients_backup', JSON.stringify(list));
+        } catch (e) {
+          console.warn('MOCK_DB delete error:', e);
+        }
+        return true;
+      }
+    };
+
+    function getFormData() {
+      return {
+        name: (document.getElementById('pName') && document.getElementById('pName').value) || (appState.patientProfile && appState.patientProfile.name) || 'Unnamed Patient',
+        age: (document.getElementById('pAge') && document.getElementById('pAge').value) || (appState.patientProfile && appState.patientProfile.age) || '',
+        sex: (document.getElementById('pSex') && document.getElementById('pSex').value) || (appState.patientProfile && appState.patientProfile.sex) || 'Unspecified',
+        symptoms: (document.getElementById('pSymptoms') && document.getElementById('pSymptoms').value) || (appState.patientProfile && appState.patientProfile.symptoms) || '',
+        conditions: (document.getElementById('pConditions') && document.getElementById('pConditions').value) || (appState.patientProfile && appState.patientProfile.conditions) || '',
+        allergies: (document.getElementById('pAllergies') && document.getElementById('pAllergies').value) || (appState.patientProfile && appState.patientProfile.allergies) || '',
+        medications: (document.getElementById('pMedications') && document.getElementById('pMedications').value) || (appState.patientProfile && appState.patientProfile.medications) || ''
+      };
+    }
+
+    function saveRecord() {
+      saveCurrentPatientRecord();
+    }
+
 
     /* ==========================================================================
        MODULE 1: SECURITY & DATA PROTECTION BOUNDARIES
@@ -4209,7 +4349,7 @@ PLAN:
 
     function runInBrowserTests() {
       const container = document.getElementById('testResultsContainer');
-      container.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--text-muted);">Executing 25 automated test specifications in browser memory...</div>';
+      container.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--text-muted);">Executing 35 automated test specifications in browser memory...</div>';
 
       const results = [];
       const startTime = performance.now();
@@ -4553,6 +4693,8 @@ PLAN:
 
     // Initialize on DOM load with Case 1 and backend health verification
     window.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      initWelcomeBanner();
       checkBackendStatus();
       loadCase(1);
     });
@@ -4563,46 +4705,19 @@ PLAN:
     let backendAvailable = false;
     let aiProviderName = "None";
 
-    async function checkBackendStatus() {
+    function checkBackendStatus() {
+      backendAvailable = false;
+      aiProviderName = "Offline (Client-Side Standalone)";
       const statusEl = document.getElementById('aiBackendStatus');
       const modeEl = document.getElementById('aiModeLabel');
-      try {
-        const res = await fetch('/api/health');
-        if (res.ok) {
-          const data = await res.json();
-          backendAvailable = true;
-          aiProviderName = data.ai_provider;
-          if (statusEl) statusEl.textContent = `Backend: Online (SQLite) • AI: ${data.ai_provider}`;
-          if (data.ai_available && modeEl) {
-            modeEl.innerHTML = `⚡ <strong>Engine:</strong> Real AI Connected (${data.ai_provider})`;
-          }
-          return;
-        }
-      } catch (e) {
-        // Backend offline / static preview mode
-      }
-      backendAvailable = false;
+      const kpiEngine = document.getElementById('kpiEngineStatus');
       if (statusEl) statusEl.textContent = 'Backend: Offline (Client-Side Standalone)';
+      if (kpiEngine) kpiEngine.textContent = '100% Client-Side Engine';
       if (modeEl) modeEl.innerHTML = '🛡️ <strong>Engine:</strong> Local Automated Extraction (Deterministic Clinical Regex)';
     }
 
     async function requestAIAnalysis(reportText, profile) {
-      if (!backendAvailable) return null;
-      try {
-        const res = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ text: reportText, patientProfile: profile })
-        });
-        if (res.ok) {
-          const data = await res.json();
-          if (data.success && data.extracted) {
-            return data;
-          }
-        }
-      } catch (e) {
-        console.warn('[MedLens AI] Network error, using local fallback:', e.message);
-      }
+      // 100% Client-side privacy-first engine: returns null cleanly so local deterministic parser runs
       return null;
     }
 
@@ -4712,31 +4827,16 @@ PLAN:
       document.getElementById('patientHistoryModal').classList.remove('active');
     }
 
-    async function refreshPatientList() {
+    function refreshPatientList() {
       const container = document.getElementById('patientListContainer');
+      if (!container) return;
       container.innerHTML = '<div style="padding: 1rem; text-align: center; color: var(--text-muted);">Loading stored records...</div>';
 
-      let patients = [];
-      if (backendAvailable) {
-        try {
-          const res = await fetch('/api/patients');
-          if (res.ok) patients = await res.json();
-        } catch (e) {
-          console.warn('Backend patients fetch failed, checking local storage');
-        }
-      }
-
-      // Local storage fallback
-      if (patients.length === 0) {
-        const local = localStorage.getItem('medlens_patients_backup');
-        if (local) {
-          try { patients = JSON.parse(local); } catch(e){}
-        }
-      }
+      const patients = MOCK_DB.getPatients();
 
       if (patients.length === 0) {
         container.innerHTML = `
-          <div style="text-align: center; padding: 2rem; color: var(--text-subtle); font-size: 0.85rem;">
+          <div style="text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.85rem;">
             No saved patient records found in persistent storage.<br>Click "Save Current Patient & Report" above to store the active session.
           </div>
         `;
@@ -4744,19 +4844,15 @@ PLAN:
       }
 
       container.innerHTML = patients.map(p => `
-        <div style="display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 0.8rem 1rem; margin-bottom: 0.5rem;">
+        <div style="background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 0.75rem 1rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
           <div>
-            <div style="font-weight: 700; color: var(--text-main); font-size: 0.95rem;">
-              👤 ${MedLensSecurity.escapeHtml(p.name || 'Unnamed Patient')} 
-              <span style="font-size: 0.8rem; font-weight: normal; color: var(--text-muted);">(${MedLensSecurity.escapeHtml(p.age || 'N/A')} yrs, ${MedLensSecurity.escapeHtml(p.sex || 'N/A')})</span>
-            </div>
-            <div style="font-size: 0.75rem; color: var(--text-subtle); margin-top: 0.2rem;">
-              Reports: <strong>${p.report_count || 1}</strong> • Last Updated: ${p.updated_at ? new Date(p.updated_at).toLocaleDateString() : 'Recent'}
-            </div>
+            <strong style="color: var(--text-main); font-size: 0.9rem;">${MedLensSecurity.escapeHtml(p.name)}</strong>
+            <span style="font-size: 0.78rem; color: var(--text-muted); margin-left: 0.5rem;">${MedLensSecurity.escapeHtml(p.age || '')} ${MedLensSecurity.escapeHtml(p.sex || '')}</span>
+            <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">Updated: ${new Date(p.updated_at || Date.now()).toLocaleDateString()}</div>
           </div>
-          <div style="display: flex; gap: 0.4rem;">
+          <div style="display: flex; gap: 0.35rem;">
             <button class="btn btn-xs btn-primary" onclick="loadPatientRecord('${p.id}')">Load</button>
-            <button class="btn btn-xs" style="color: #f87171;" onclick="deletePatientRecord('${p.id}')">Delete</button>
+            <button class="btn btn-xs" style="color: #ef4444;" onclick="deletePatientRecord('${p.id}')">Delete</button>
           </div>
         </div>
       `).join('');
@@ -4764,7 +4860,7 @@ PLAN:
 
     async function saveCurrentPatientRecord() {
       const p = getFormData();
-      const reportText = document.getElementById('reportText').value;
+      const reportText = (document.getElementById('reportText') && document.getElementById('reportText').value) || '';
 
       const payload = {
         name: p.name || 'Unnamed Patient',
@@ -4776,105 +4872,47 @@ PLAN:
         medications: p.medications
       };
 
-      showToast("Saving patient record to persistent storage...");
       try {
-        let savedPat = null;
-        if (backendAvailable) {
-          const res = await fetch('/api/patients', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          if (res.ok) {
-            savedPat = await res.json();
-            // Save report snapshot
-            if (reportText && reportText.trim()) {
-              await fetch(`/api/patients/${savedPat.id}/reports`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  report_text: reportText,
-                  extraction_source: appState.parsedData.extractionSource || 'Local Automated Extraction',
-                  parsed_data: appState.parsedData,
-                  verification_data: appState.verificationMetrics
-                })
-              });
-            }
-          }
-        }
-
-        // Always sync with localStorage backup
-        let localPats = [];
-        try { localPats = JSON.parse(localStorage.getItem('medlens_patients_backup') || '[]'); } catch(e){}
-        const recordId = savedPat ? savedPat.id : ('pat_' + Date.now());
-        const existingIdx = localPats.findIndex(x => x.id === recordId);
-        const recordData = {
-          id: recordId,
-          ...payload,
-          report_text: reportText,
-          parsed_data: appState.parsedData,
-          report_count: 1,
-          updated_at: new Date().toISOString()
-        };
-        if (existingIdx >= 0) localPats[existingIdx] = recordData;
-        else localPats.unshift(recordData);
-        localStorage.setItem('medlens_patients_backup', JSON.stringify(localPats));
-
-        showToast("✓ Patient record saved to SQLite persistent storage!");
+        const saved = MOCK_DB.savePatient(payload, reportText, appState.parsedData, appState.verificationMetrics);
+        showToast(`✓ Patient record saved for ${saved.name}!`);
         refreshPatientList();
       } catch (err) {
         showToast(`Save error: ${err.message}`);
       }
     }
 
-    async function loadPatientRecord(id) {
-      showToast("Loading patient record...");
+    function loadPatientRecord(id) {
       try {
-        let p = null;
-        if (backendAvailable) {
-          const res = await fetch(`/api/patients/${id}`);
-          if (res.ok) p = await res.json();
-        }
-
+        const p = MOCK_DB.getPatient(id);
         if (!p) {
-          const local = JSON.parse(localStorage.getItem('medlens_patients_backup') || '[]');
-          p = local.find(x => x.id === id);
+          showToast("Patient record not found");
+          return;
         }
 
-        if (p) {
-          document.getElementById('pName').value = p.name || '';
-          document.getElementById('pAge').value = p.age || '';
-          document.getElementById('pSex').value = p.sex || 'Unspecified';
-          document.getElementById('pSymptoms').value = p.symptoms || '';
-          document.getElementById('pConditions').value = p.conditions || '';
-          document.getElementById('pAllergies').value = p.allergies || '';
-          document.getElementById('pMedications').value = p.medications || '';
+        if (document.getElementById('pName')) document.getElementById('pName').value = p.name || '';
+        if (document.getElementById('pAge')) document.getElementById('pAge').value = p.age || '';
+        if (document.getElementById('pSex')) document.getElementById('pSex').value = p.sex || 'Unspecified';
+        if (document.getElementById('pSymptoms')) document.getElementById('pSymptoms').value = p.symptoms || '';
+        if (document.getElementById('pConditions')) document.getElementById('pConditions').value = p.conditions || '';
+        if (document.getElementById('pAllergies')) document.getElementById('pAllergies').value = p.allergies || '';
+        if (document.getElementById('pMedications')) document.getElementById('pMedications').value = p.medications || '';
 
-          if (p.reports && p.reports.length > 0) {
-            document.getElementById('reportText').value = p.reports[0].report_text || '';
-          } else if (p.report_text) {
-            document.getElementById('reportText').value = p.report_text;
-          }
-
-          closePatientHistoryModal();
-          showToast(`✓ Loaded record for ${p.name}`);
-          processAllData();
+        if (document.getElementById('reportText')) {
+          document.getElementById('reportText').value = p.report_text || '';
         }
+
+        closePatientHistoryModal();
+        showToast(`✓ Loaded record for ${p.name}`);
+        triggerAutoParse();
       } catch (err) {
         showToast(`Load error: ${err.message}`);
       }
     }
 
-    async function deletePatientRecord(id) {
+    function deletePatientRecord(id) {
       if (!confirm("Are you sure you want to delete this patient record?")) return;
       try {
-        if (backendAvailable) {
-          await fetch(`/api/patients/${id}`, { method: 'DELETE' });
-        }
-        let local = JSON.parse(localStorage.getItem('medlens_patients_backup') || '[]');
-        local = local.filter(x => x.id !== id);
-        localStorage.setItem('medlens_patients_backup', JSON.stringify(local));
-
+        MOCK_DB.deletePatient(id);
         showToast("✓ Patient record deleted");
         refreshPatientList();
       } catch (err) {
@@ -5057,9 +5095,18 @@ PLAN:
        MODULE 19: CLINICAL DASHBOARD UI & THEME CONTROLS
        ========================================================================== */
     function initTheme() {
-      const saved = localStorage.getItem('medlens_theme') || 'dark';
-      document.documentElement.setAttribute('data-theme', saved);
-      updateThemeToggleUI(saved);
+      try {
+        const saved = localStorage.getItem('medlens_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+        const themeBtn = document.getElementById('themeToggleBtn');
+        if (themeBtn) {
+          themeBtn.textContent = saved === 'dark' ? '☀️' : '🌙';
+          themeBtn.setAttribute('title', saved === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+          themeBtn.setAttribute('aria-label', saved === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+        }
+      } catch (e) {
+        console.warn('initTheme error:', e);
+      }
     }
 
     function toggleTheme() {
@@ -5147,10 +5194,14 @@ PLAN:
     }
 
     function initWelcomeBanner() {
-      const banner = document.getElementById('welcomeBanner');
-      if (!banner) return;
-      if (localStorage.getItem('medlens_welcome_dismissed') === 'true') {
-        banner.classList.add('hidden');
+      try {
+        const dismissed = localStorage.getItem('medlens_welcome_dismissed');
+        const banner = document.getElementById('welcomeBanner');
+        if (banner && dismissed === 'true') {
+          banner.classList.add('hidden');
+        }
+      } catch (e) {
+        console.warn('initWelcomeBanner error:', e);
       }
     }
 
@@ -5202,10 +5253,7 @@ PLAN:
       document.getElementById('provenanceModal').classList.remove('active');
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
-      initTheme();
-      initWelcomeBanner();
-    });
+
 
   </script>
 </body>
