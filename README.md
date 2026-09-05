@@ -17,7 +17,7 @@ MedLens is a client-side medical record structuring and review tool designed to 
 - **Three-Tier Quality Metrics**: Live computation of Record Completeness (%), Extraction Confidence (High/Med/Low), and Verification progress.
 - **Privacy Mode**: One-click PHI de-identification (redacting patient names and ages) for HIPAA-safe screen sharing and export.
 - **Built-in 25-Test Automated Suite**: In-browser test runner verifying extraction accuracy, boundary conditions, fuzz resilience, and XSS sanitization in < 100 ms.
-- **7 Competition Demo Presets**: Instant load presets covering clean cardiology, diabetic abnormalities, allergy conflicts, missing reference ranges, dose escalation, messy EHR notes, and security injection tests.
+- **6 Competition Demo Presets**: Instant load presets covering clean cardiology, diabetic abnormalities, allergy conflicts, missing reference ranges, dose escalation, and messy EHR notes.
 
 ---
 

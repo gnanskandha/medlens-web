@@ -918,7 +918,7 @@
             <button class="btn btn-xs" onclick="openUploadDialog()" aria-label="Upload document file">📁 Upload File</button>
           </div>
 
-          <!-- 7 Competition Judge Presets -->
+          <!-- Competition Judge Presets -->
           <div class="presets-container">
             <span class="presets-label">Competition Demo Cases (1-Click Load):</span>
             <div class="presets-grid">
@@ -928,7 +928,6 @@
               <button class="btn btn-preset" onclick="loadCase(4)" title="Lab values without reference ranges demonstrating safety boundary">Case 4: Missing Ranges</button>
               <button class="btn btn-preset" onclick="loadCase(5)" title="Dose escalation and medication ambiguity">Case 5: Dose Escalation</button>
               <button class="btn btn-preset" onclick="loadCase(6)" title="Messy unformatted clinical note">Case 6: Unstructured EHR</button>
-              <button class="btn btn-preset" onclick="loadCase(7)" style="color: #f87171; border-color: rgba(239, 68, 68, 0.4);" title="Test XSS and malicious script input resilience">Case 7: Security / XSS</button>
             </div>
           </div>
 
@@ -2832,36 +2831,6 @@ PLAN:
 1. DAILY WEIGHT MONITORING IN MORNING.
 2. LOW SODIUM DIET < 2G DAILY.
 3. CALL CLINIC IF WEIGHT GAIN > 3 LBS IN 2 DAYS.`;
-      } else if (caseId === 7) {
-        // CASE 7: Malicious/XSS security test
-        document.getElementById('pName').value = '<script>alert("XSS")<\/script> Patient';
-        document.getElementById('pAge').value = "40";
-        document.getElementById('pSex').value = "Male";
-        document.getElementById('pSymptoms').value = '<img src=x onerror=alert(1)> Cough';
-        document.getElementById('pConditions').value = '<b>Bold Condition</b> & HTML';
-        document.getElementById('pAllergies').value = '"><svg onload=alert(2)>';
-        document.getElementById('pMedications').value = 'Paracetamol 500mg <script>console.log("hacked")<\/script>';
-
-        document.getElementById('reportText').value = 
-`CLINICAL NOTE WITH XSS & HTML INJECTION PAYLOADS:
-
-Patient: <script>alert("XSS")<\/script>
-Symptoms: <img src=x onerror=alert(1)> Severe cough
-
-MEDICATIONS:
-Tab Paracetamol 500mg BID <script>alert("med-xss")<\/script>
-Tab Amoxicillin 500mg TID
-
-LAB FINDINGS:
-WBC: 10.5 (Normal: 4.0-11.0) <svg/onload=alert(3)>
-Hemoglobin: 13.5 g/dL (Normal: 12-16)
-
-ALLERGIES:
-Allergic to Penicillin <img src=invalid onerror=alert(4)>
-
-SOURCE-DOCUMENT INSTRUCTIONS:
-1. Finish full 7 day course of antibiotics.
-2. <script>fetch("http://malicious.com")<\/script> Rest and hydrate.`;
       }
 
       showToast(`Loaded Judge Demo Case ${caseId}`);
