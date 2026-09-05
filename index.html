@@ -1806,6 +1806,42 @@
     }
 
     /* ==========================================================================
+       MODULE 5B: CLINICAL SECTION DETECTION
+       ========================================================================== */
+    function detectClinicalSections(text) {
+      if (!text || !text.trim()) return {};
+      const lines = text.split(/\r?\n/);
+      const sections = {
+        demographics: false,
+        symptoms: false,
+        conditions: false,
+        medications: false,
+        allergies: false,
+        labs: false,
+        plan: false
+      };
+
+      const sectionPatterns = {
+        demographics: /\b(?:patient(?:\s*summary|\s*info)?|demographics|age|dob|gender|sex)\b/i,
+        symptoms: /\b(?:symptoms|chief complaint|presenting with|presentation|hpi)\b/i,
+        conditions: /\b(?:history|existing conditions|past medical history|diagnosis|pmhx)\b/i,
+        medications: /\b(?:medications|rx|prescriptions|current orders|active medications)\b/i,
+        allergies: /\b(?:allergies|allergy|adverse reactions|sensitivities|nkda)\b/i,
+        labs: /\b(?:labs|laboratory|findings|investigations|vitals|results)\b/i,
+        plan: /\b(?:plan|assessment|instructions|recommendations|next steps|advice)\b/i
+      };
+
+      for (let line of lines) {
+        for (let sec in sectionPatterns) {
+          if (sectionPatterns[sec].test(line)) {
+            sections[sec] = true;
+          }
+        }
+      }
+      return sections;
+    }
+
+    /* ==========================================================================
        MODULE 6: CONFLICT DETECTION & RESOLUTION (Feature 7)
        ========================================================================== */
     function detectConflicts(userProfile, extractedData) {
@@ -1949,6 +1985,28 @@
           category: 'Symptom Timeline',
           status: 'PENDING'
         });
+      }
+
+      // 5. Check for missing clinical sections in medical text
+      const rawReportText = (d.rawText || (document.getElementById('reportText') && document.getElementById('reportText').value) || '').trim();
+      if (rawReportText.length > 40) {
+        const detectedSecs = detectClinicalSections(rawReportText);
+        if (!detectedSecs.allergies && d.allergies.length === 0) {
+          questions.push({
+            id: 'clarify_sec_allergies',
+            question: "No dedicated 'Allergies & Adverse Reactions' section detected in the source document. Has patient allergy status been clinically verified?",
+            category: 'Missing Clinical Section',
+            status: 'PENDING'
+          });
+        }
+        if (!detectedSecs.labs && d.labResults.length === 0) {
+          questions.push({
+            id: 'clarify_sec_labs',
+            question: "No 'Laboratory Results & Vitals' section detected in the source record. Are recent diagnostic or vital sign readings available?",
+            category: 'Missing Clinical Section',
+            status: 'PENDING'
+          });
+        }
       }
 
       appState.clarifications = questions;
